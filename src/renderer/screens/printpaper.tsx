@@ -4,6 +4,7 @@ import loading from '../../../assets/image/loading.gif';
 import Person from '../../../assets/image/img2.jpg';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ImageData, PaperData } from 'renderer/context/context';
+import { nativeImage } from 'electron';
 
 const PrintPaper = () => {
   const { imgcount } = useParams();
@@ -30,6 +31,18 @@ const PrintPaper = () => {
       setPaperData(result);
     }
   };
+
+  const PrintPaper = async (image) => {
+    // calling IPC exposed from preload script
+    await window.electron.ipcRenderer.invoke('print-paper',image)
+  };
+
+  const HandlePrint = ()=>{
+    paperList.map((paper,index)=>{
+      PrintPaper(paper);
+      console.log("printing paper",index)
+    })
+  }
 
   useEffect(() => {
     LoadImg();
@@ -62,6 +75,18 @@ const PrintPaper = () => {
             Back to Home
           </Button>
         </Col>
+        <Col
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <h5>{paperList.length} Pages</h5>
+        </Col>
+        <Col>
+          <Button variant='primary' onClick={HandlePrint}>Print</Button>
+        </Col>
       </Row>
       <div
         style={{
@@ -71,11 +96,26 @@ const PrintPaper = () => {
         }}
       />
       <Row>
-        <Col style={{ height: '90vh', overflowY: 'auto',backgroundColor:'black' }}>
-          <Row style={{display:'flex',alignItems:'center',justifyContent:'center'}}>
-            
+        <Col
+          style={{
+            height: '90vh',
+            overflowY: 'auto',
+            backgroundColor: '#949494',
+          }}
+        >
+          <Row
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
             {paperdata.map((paper, index) => (
-              <img src={paper} key={index} style={{width:'79%',marginTop:5,marginBottom:5}}/>
+              <img
+                src={paper}
+                key={index}
+                style={{ width: '79%', marginTop: 5, marginBottom: 5 }}
+              />
             ))}
           </Row>
         </Col>

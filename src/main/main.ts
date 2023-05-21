@@ -17,6 +17,7 @@ import { exec, execFile, spawn } from 'child_process';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { readFile, mkdir } from 'fs/promises';
+import { webContents } from 'electron/main';
 
 function CreateDirectory(folderName: string) {
   // Create the folder
@@ -187,7 +188,6 @@ try {
 const paperFolderPath = documentsPath + '/Pascal/paper/';
 let paper_oldfilename;
 
-
 watch(paperFolderPath, (eventType, filename) => {
   console.log(eventType, filename, 'File Name');
   if (eventType === 'change') {
@@ -318,17 +318,21 @@ ipcMain.handle('open-files-dialog', async () => {
   return { imgdata: fileData, uridata: result.filePaths };
 });
 
-
-
-ipcMain.handle('uritoimg', async (event,fileuri) => {
-  
+ipcMain.handle('uritoimg', async (event, fileuri) => {
   const fileData = fileuri.map((filePath) => {
     const data = readFileSync(filePath).toString('base64');
     const mimeType = `image/${filePath.split('.').pop()}`;
     return `data:${mimeType};base64,${data}`;
   });
 
-  return fileData ;
+  return fileData;
 });
 
-
+ipcMain.handle('print-paper', (event, img) => {
+  mainWindow?.webContents.print({
+    slient: true,
+    image: img,
+  })
+  console.log('Printing paper')
+ 
+});
