@@ -72,7 +72,24 @@ ipcMain.on('ipc-example', async (event, arg) => {
 });
 
 ipcMain.on('runExecutable', (event, { arg }) => {
-  const executablePath = 'Depend/Gimg';
+  let executablePath = 'Depend/Gimg';
+
+  
+switch (process.platform) {
+  case 'win32':
+    executablePath = 'Depend/Gimg.exe';
+    break;
+  case 'darwin':
+    executablePath = 'Depend/Gimg';
+    break;
+  case 'linux':
+     executablePath = 'Depend/Gimg';
+    break;
+  default:
+    console.error('Unsupported operating system');
+}
+
+
   console.log('Executing.....');
 
   execFile(executablePath, arg, (error, stdout, stderr) => {
