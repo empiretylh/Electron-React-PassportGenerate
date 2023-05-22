@@ -22,8 +22,8 @@ import {
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { readFile, mkdir } from 'fs/promises';
-import { webContents } from 'electron/main';
-import printDialog from 'electron-print-dialog';
+
+
 function CreateDirectory(folderName: string) {
   // Create the folder
   mkdir(folderName, { recursive: true }, (err: any) => {
@@ -41,22 +41,6 @@ const electronApp = app || remote.app;
 
 // Get the user data directory
 const documentsPath = electronApp.getPath('documents');
-
-// // Construct the path to the Documents folder based on the operating system
-// let documentsPath;
-// switch (process.platform) {
-//   case 'win32':
-//     documentsPath = path.join(userDataPath, 'Documents');
-//     break;
-//   case 'darwin':
-//     documentsPath = path.join(userDataPath, 'Documents');
-//     break;
-//   case 'linux':
-//     documentsPath = path.join(userDataPath, 'Documents');
-//     break;
-//   default:
-//     console.error('Unsupported operating system');
-// }
 
 let pythonProcess: ChildProcessWithoutNullStreams;
 
@@ -333,23 +317,6 @@ ipcMain.on('runExecutable', (event, { arg }) => {
   sendToExecutable(arg[3]);
   sendToExecutable(arg[4]);
   sendToExecutable(arg[5]);
-
-  // execFile(executablePath, arg, (error, stdout, stderr) => {
-  //   if (error) {
-  //     console.error(`error: ${error}`);
-  //     return;
-  //   } else {
-  //     console.log(stdout);
-  //     event.reply('runExecutable', stdout);
-  //   }
-
-  //   if (stderr) {
-  //     console.error(`stderr: ${stderr}`);
-  //     return;
-  //   }
-
-  //   console.log(`stdout:\n${stdout}`);
-  // });
 
   console.log('Finsished');
 });
