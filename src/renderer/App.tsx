@@ -47,7 +47,7 @@ function Hello() {
 export default function App() {
   const [imgsSelect, setImgsSelect] = useState([]);
 
-  const [paperList, setPaperList] = useState(['/home/thura/Documents/Pascal/paper/p_0_20230522_232445.jpg']);
+  const [paperList, setPaperList] = useState([]);
 
   const [papersize,setPSize] = useState('2480,3508');
 
@@ -70,10 +70,10 @@ export default function App() {
         <Router>
           <Routes>
             
-            {/* <Route path="/" element={<Home />} /> */}
+            <Route path="/" element={<Home />} />
             {/* <Route path="/" element={<ImageResult />} /> */}
-            {/* <Route path="imgresult/:imgcount" element={<ImageResult />} /> */}
-            <Route path="/" element={<PrintPaper />}/>
+            <Route path="imgresult/:imgcount" element={<ImageResult />} />
+            <Route path="/paper" element={<PrintPaper />}/>
           </Routes>
         </Router>
         </PaperSize.Provider>

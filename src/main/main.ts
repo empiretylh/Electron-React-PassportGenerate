@@ -64,29 +64,6 @@ ipcMain.on('ipc-example', async (event, arg) => {
   event.reply('ipc-example', msgTemplate('pong'));
 });
 
-ipcMain.on('runExecutable', (event, { arg }) => {
-  const executablePath = 'Depend/Gimg';
-  console.log('Executing.....');
-
-  execFile(executablePath, arg, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`error: ${error}`);
-      return;
-    } else {
-      console.log(stdout);
-      event.reply('runExecutable', stdout);
-    }
-
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
-      return;
-    }
-
-    console.log(`stdout:\n${stdout}`);
-  });
-
-  console.log('Finsished');
-});
 
 // Watch the folder for changes
 const folderPath = documentsPath + '/Pascal/img/'; // Provide your folder path here
@@ -254,7 +231,35 @@ const createWindow = async () => {
     }
   });
 
+ 
+
+
+  
+const os = process.platform;
+
+// Example usage
+if (os === 'win32') {
+  // Windows-specific code  
+  pythonProcess = spawn('./Depend/main_p.exe');
+  
+  printProcess = spawn('./Depend/print_paper.exe');
+  
+} else if (os === 'darwin') {
+  // macOS-specific code
   pythonProcess = spawn('./Depend/main_p');
+  
+  printProcess = spawn('./Depend/print_paper');
+
+  console.log('Running on macOS');
+} else if (os === 'linux') {
+  pythonProcess = spawn('./Depend/main_p');
+  
+  printProcess = spawn('./Depend/print_paper');
+
+} else {
+  // Unknown operating system
+  console.log('Running on an unknown operating system');
+}
 
   // Receive data from the executable
   pythonProcess.stdout.on('data', (data) => {
@@ -268,7 +273,6 @@ const createWindow = async () => {
     console.log(`Executable process exited with code ${code}`);
   });
 
-  printProcess = spawn('./Depend/print_paper');
 
   // Receive data from the executable
   printProcess.stdout.on('data', (data) => {
