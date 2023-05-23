@@ -12,16 +12,21 @@ import path from 'path';
 import { app, BrowserWindow, shell, ipcMain, dialog, remote } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
-import { readFileSync, watch, readdir } from 'fs';
-import { exec, execFile, spawn } from 'child_process';
+import { readFileSync, watch, readdir, PathOrFileDescriptor } from 'fs';
+import {
+  ChildProcessWithoutNullStreams,
+  exec,
+  execFile,
+  spawn,
+} from 'child_process';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { readFile, mkdir } from 'fs/promises';
 import { webContents } from 'electron/main';
-
+import printDialog from 'electron-print-dialog';
 function CreateDirectory(folderName: string) {
   // Create the folder
-  mkdir(folderName, { recursive: true }, (err) => {
+  mkdir(folderName, { recursive: true }, (err: any) => {
     if (err) {
       console.error('Error creating folder:', err);
       return;
@@ -53,6 +58,10 @@ const documentsPath = electronApp.getPath('documents');
 //     console.error('Unsupported operating system');
 // }
 
+let pythonProcess: ChildProcessWithoutNullStreams;
+
+let printProcess: ChildProcessWithoutNullStreams;
+
 console.log('Documents folder path:', documentsPath);
 
 class AppUpdater {
@@ -69,30 +78,6 @@ ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
   console.log(msgTemplate(arg));
   event.reply('ipc-example', msgTemplate('pong'));
-});
-
-ipcMain.on('runExecutable', (event, { arg }) => {
-  const executablePath = 'Depend/Gimg';
-  console.log('Executing.....');
-
-  execFile(executablePath, arg, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`error: ${error}`);
-      return;
-    } else {
-      console.log(stdout);
-      event.reply('runExecutable', stdout);
-    }
-
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
-      return;
-    }
-
-    console.log(`stdout:\n${stdout}`);
-  });
-
-  console.log('Finsished');
 });
 
 // Watch the folder for changes
@@ -124,7 +109,7 @@ ipcMain.handle('imageUpdated', async () => {
 
 let oldfilename;
 
-let timeout;
+let timeout: string | number | NodeJS.Timeout | undefined;
 
 const timeoutDuration = 1500;
 
@@ -186,7 +171,7 @@ try {
 }
 
 const paperFolderPath = documentsPath + '/Pascal/paper/';
-let paper_oldfilename;
+let paper_oldfilename: string;
 
 watch(paperFolderPath, (eventType, filename) => {
   console.log(eventType, filename, 'File Name');
@@ -261,6 +246,34 @@ const createWindow = async () => {
     }
   });
 
+  pythonProcess = spawn('./Depend/main_p');
+
+  // Receive data from the executable
+  pythonProcess.stdout.on('data', (data) => {
+    const receivedData = data.toString().trim();
+    // Handle received data in your Electron.js app
+    console.log('Received data from Python:', receivedData);
+  });
+
+  // Handle executable process exit
+  pythonProcess.on('exit', (code) => {
+    console.log(`Executable process exited with code ${code}`);
+  });
+
+  printProcess = spawn('./Depend/print_paper');
+
+  // Receive data from the executable
+  printProcess.stdout.on('data', (data) => {
+    const receivedData = data.toString().trim();
+    // Handle received data in your Electron.js app
+    console.log('Received data from Python:', receivedData);
+  });
+
+  // Handle executable process exit
+  printProcess.on('exit', (code) => {
+    console.log(`Executable process exited with code ${code}`);
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -282,6 +295,40 @@ const createWindow = async () => {
 /**
  * Add event listeners...
  */
+
+// Sending data from Electron.js to the executable
+function sendToExecutable(data: string) {
+  pythonProcess.stdin.write(data + '\n');
+  console.log('Exectuable Runned', data);
+}
+
+ipcMain.on('runExecutable', (event, { arg }) => {
+  sendToExecutable(arg[0]);
+  sendToExecutable(arg[1]);
+  sendToExecutable(arg[2]);
+  sendToExecutable(arg[3]);
+  sendToExecutable(arg[4]);
+  sendToExecutable(arg[5]);
+
+  // execFile(executablePath, arg, (error, stdout, stderr) => {
+  //   if (error) {
+  //     console.error(`error: ${error}`);
+  //     return;
+  //   } else {
+  //     console.log(stdout);
+  //     event.reply('runExecutable', stdout);
+  //   }
+
+  //   if (stderr) {
+  //     console.error(`stderr: ${stderr}`);
+  //     return;
+  //   }
+
+  //   console.log(`stdout:\n${stdout}`);
+  // });
+
+  console.log('Finsished');
+});
 
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even
@@ -319,7 +366,7 @@ ipcMain.handle('open-files-dialog', async () => {
 });
 
 ipcMain.handle('uritoimg', async (event, fileuri) => {
-  const fileData = fileuri.map((filePath) => {
+  const fileData = fileuri.map((filePath: PathOrFileDescriptor) => {
     const data = readFileSync(filePath).toString('base64');
     const mimeType = `image/${filePath.split('.').pop()}`;
     return `data:${mimeType};base64,${data}`;
@@ -328,11 +375,23 @@ ipcMain.handle('uritoimg', async (event, fileuri) => {
   return fileData;
 });
 
-ipcMain.handle('print-paper', (event, img) => {
-  mainWindow?.webContents.print({
-    slient: true,
-    image: img,
-  })
-  console.log('Printing paper')
- 
+function getPaperSize(value: string) {
+  switch (value) {
+    case '2480,3508':
+      return 'A4';
+    case '1200,1800':
+      return '4x6';
+    case '1748,2480':
+      return 'A5';
+    case '2550,3300':
+      return 'Legal';
+    default:
+      return 'Unknown';
+  }
+}
+ipcMain.on('print-paper', (event, args) => {
+  console.log(args['image'])
+  console.log(getPaperSize(args['papersize']));
+  printProcess.stdin.write(args['image'] + '\n');
+  printProcess.stdin.write(getPaperSize(args['papersize']) + '\n');
 });

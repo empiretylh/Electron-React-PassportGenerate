@@ -6,7 +6,7 @@ import { useState, useRef, useEffect, useContext } from 'react';
 import { Form, Button, Card, Container, Row, Col } from 'react-bootstrap';
 import ColorPicker from './colorfield';
 import { useNavigate } from 'react-router-dom';
-import { ImageData } from 'renderer/context/context';
+import { ImageData,PaperSize } from 'renderer/context/context';
 
 const colorCodeToRGB = (code: string) => {
   // Split the code into separate R, G, B components
@@ -34,12 +34,18 @@ const Home = () => {
   const [finish, setFinish] = useState(false);
 
   const { imgsSelect, setImgsSelect } = useContext(ImageData);
+  const { papersize, setPSize } = useContext(PaperSize);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     setImgsize(`${imageWidth},${imageHeight}`);
+   
   }, [imageWidth, imageHeight]);
+
+  useEffect(()=>{
+     setPSize(paperSize);
+  },[paperSize,setPaperSize])
 
   function runExecutable() {
     const imguri = selectedURI.join(',');

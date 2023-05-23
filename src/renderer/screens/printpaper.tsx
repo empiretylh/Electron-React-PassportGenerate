@@ -3,7 +3,7 @@ import { Container, Row, Col, Button, Card } from 'react-bootstrap';
 import loading from '../../../assets/image/loading.gif';
 import Person from '../../../assets/image/img2.jpg';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ImageData, PaperData } from 'renderer/context/context';
+import { ImageData, PaperData,PaperSize } from 'renderer/context/context';
 import { nativeImage } from 'electron';
 
 const PrintPaper = () => {
@@ -14,6 +14,8 @@ const PrintPaper = () => {
   const { imgsSelect, setImgsSelect } = useContext(ImageData);
 
   const { paperList, setPaperList } = useContext(PaperData);
+
+  const {papersize,setPSize} = useContext(PaperSize);
 
   const [isGenerate, setIsGenerate] = useState(true);
 
@@ -32,16 +34,17 @@ const PrintPaper = () => {
     }
   };
 
-  const PrintPaper = async (image) => {
+  const PrintPaper = async (image:any,papersize:any) => {
     // calling IPC exposed from preload script
-    await window.electron.ipcRenderer.invoke('print-paper',image)
+
+    await window.electron.ipcRenderer.sendMessage('print-paper',{image,papersize})
   };
 
   const HandlePrint = ()=>{
-    paperList.map((paper,index)=>{
-      PrintPaper(paper);
-      console.log("printing paper",index)
-    })
+ 
+      PrintPaper(paperList,papersize);
+      console.log("printing paper",papersize)
+ 
   }
 
   useEffect(() => {

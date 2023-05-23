@@ -1854,6 +1854,26 @@ eval("\n\nvar http = __webpack_require__(/*! http */ \"http\");\nvar https = __w
 
 /***/ }),
 
+/***/ "./node_modules/electron-print-dialog/dist/index.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/electron-print-dialog/dist/index.js ***!
+  \**********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+eval("process.env.HMR_PORT=0;process.env.HMR_HOSTNAME=\"localhost\";parcelRequire=function(e,r,t,n){var i,o=\"function\"==typeof parcelRequire&&parcelRequire,u=undefined;function f(t,n){if(!r[t]){if(!e[t]){var i=\"function\"==typeof parcelRequire&&parcelRequire;if(!n&&i)return i(t,!0);if(o)return o(t,!0);if( true&&\"string\"==typeof t)return __webpack_require__(\"./node_modules/electron-print-dialog/dist sync recursive\")(t);var c=new Error(\"Cannot find module '\"+t+\"'\");throw c.code=\"MODULE_NOT_FOUND\",c}p.resolve=function(r){return e[t][1][r]||r},p.cache={};var l=r[t]=new f.Module(t);e[t][0].call(l.exports,p,l,l.exports,this)}return r[t].exports;function p(e){return f(p.resolve(e))}}f.isParcelRequire=!0,f.Module=function(e){this.id=e,this.bundle=f,this.exports={}},f.modules=e,f.cache=r,f.parent=o,f.register=function(r,t){e[r]=[function(e,r){r.exports=t},{}]};for(var c=0;c<t.length;c++)try{f(t[c])}catch(e){i||(i=e)}if(t.length){var l=f(t[t.length-1]); true?module.exports=l:0}if(parcelRequire=f,i)throw i;return f}({\"Focm\":[function(require,module,exports) {\n\"use strict\";const e=require(\"path\"),n=require(\"electron\");module.exports=function(){const o=n.BrowserWindow||n.remote.BrowserView;let r;return{open:(n,{data:t})=>{console.log(\"Opening Print Dialog...\"),(r=new o({width:900,height:600,modal:!0,frame:!1,resizable:!1,parent:n,webPreferences:{plugins:!0,nodeIntegration:!0}})).removeMenu(),r.webContents.openDevTools(),r.loadURL(`file://${e.join(__dirname,\"../dist/index.html\")}`),r.on(\"closed\",()=>r=null)}}};\n},{}]},{},[\"Focm\"], null)\n\n//# sourceURL=webpack://renderer/./node_modules/electron-print-dialog/dist/index.js?");
+
+/***/ }),
+
+/***/ "./node_modules/electron-print-dialog/dist sync recursive":
+/*!*******************************************************!*\
+  !*** ./node_modules/electron-print-dialog/dist/ sync ***!
+  \*******************************************************/
+/***/ ((module) => {
+
+eval("function webpackEmptyContext(req) {\n\tvar e = new Error(\"Cannot find module '\" + req + \"'\");\n\te.code = 'MODULE_NOT_FOUND';\n\tthrow e;\n}\nwebpackEmptyContext.keys = () => ([]);\nwebpackEmptyContext.resolve = webpackEmptyContext;\nwebpackEmptyContext.id = \"./node_modules/electron-print-dialog/dist sync recursive\";\nmodule.exports = webpackEmptyContext;\n\n//# sourceURL=webpack://renderer/./node_modules/electron-print-dialog/dist/_sync?");
+
+/***/ }),
+
 /***/ "./node_modules/electron-updater/node_modules/fs-extra/lib/copy/copy-sync.js":
 /*!***********************************************************************************!*\
   !*** ./node_modules/electron-updater/node_modules/fs-extra/lib/copy/copy-sync.js ***!

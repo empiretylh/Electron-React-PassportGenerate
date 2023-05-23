@@ -6,7 +6,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import ImageResult from './screens/imgresult';
 import PrintPaper from './screens/printpaper';
 import { useMemo, useState } from 'react';
-import { ImageData, PaperData } from './context/context';
+import { ImageData, PaperData,PaperSize } from './context/context';
 function Hello() {
   return (
     <div>
@@ -47,7 +47,9 @@ function Hello() {
 export default function App() {
   const [imgsSelect, setImgsSelect] = useState([]);
 
-  const [paperList, setPaperList] = useState(['/home/thura/Documents/Pascal/paper/p_20230520_200343.jpg']);
+  const [paperList, setPaperList] = useState(['/home/thura/Documents/Pascal/paper/p_0_20230522_232445.jpg']);
+
+  const [papersize,setPSize] = useState('2480,3508');
 
   const SelectValue = useMemo(
     () => ({ imgsSelect, setImgsSelect }),
@@ -59,18 +61,22 @@ export default function App() {
     [paperList, setPaperList]
   );
 
+  const sizeValue = useMemo(()=>({papersize,setPSize}),[papersize,setPSize])
+
   return (
     <ImageData.Provider value={SelectValue}>
       <PaperData.Provider value={PaperValue}>
+        <PaperSize.Provider value={sizeValue}>
         <Router>
           <Routes>
             
-            <Route path="/" element={<Home />} />
+            {/* <Route path="/" element={<Home />} /> */}
             {/* <Route path="/" element={<ImageResult />} /> */}
-            <Route path="imgresult/:imgcount" element={<ImageResult />} />
-            <Route path="paper/" element={<PrintPaper />}/>
+            {/* <Route path="imgresult/:imgcount" element={<ImageResult />} /> */}
+            <Route path="/" element={<PrintPaper />}/>
           </Routes>
         </Router>
+        </PaperSize.Provider>
       </PaperData.Provider>
     </ImageData.Provider>
   );
