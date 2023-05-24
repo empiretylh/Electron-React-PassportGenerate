@@ -23,16 +23,19 @@ import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { readFile, mkdir } from 'fs/promises';
 
-
-function CreateDirectory(folderName: string) {
-  // Create the folder
-  mkdir(folderName, { recursive: true }, (err: any) => {
-    if (err) {
-      console.error('Error creating folder:', err);
-      return;
-    }
-
-    console.log('Folder created successfully:', folderPath);
+function createDirectory(folderName) {
+  return new Promise((resolve, reject) => {
+    // Create the folder
+    console.log(folderName);
+    mkdir(folderName, { recursive: true })
+      .then(() => {
+        console.log('Folder created successfully:', folderName);
+        resolve();
+      })
+      .catch((err) => {
+        console.error('Error creating folder:', err);
+        reject(err);
+      });
   });
 }
 
@@ -57,116 +60,6 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
-
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
-});
-
-
-// Watch the folder for changes
-const folderPath = documentsPath + '/Pascal/img/'; // Provide your folder path here
-
-ipcMain.handle('imageUpdated', async () => {
-  // Initial scan of the folder to get the list of files
-  let result;
-
-  readdir(folderPath, (err, files) => {
-    if (err) {
-      console.error('Error reading folder:', err);
-      return;
-    }
-    files.map((filename) => {
-      const file = folderPath + filename;
-      const data = readFileSync(file).toString('base64');
-      const mimeType = `image/${file.split('.').pop()}`;
-      const fileData = `data:${mimeType};base64,${data}`;
-
-      mainWindow.webContents.send('imageUpdated', fileData);
-    });
-  });
-
-  console.log(result, 'result........');
-
-  return result;
-});
-
-let oldfilename;
-
-let timeout: string | number | NodeJS.Timeout | undefined;
-
-const timeoutDuration = 1500;
-
-try {
-  watch(folderPath, (eventType, filename) => {
-    console.log(eventType, filename, 'File Name');
-    if (eventType === 'change') {
-      if (filename) {
-        oldfilename = filename;
-
-        clearTimeout(timeout);
-
-        timeout = setTimeout(() => {
-          const file = folderPath + filename;
-          const mimeType = `image/${file.split('.').pop()}`;
-          readFile(file)
-            .then((data) => {
-              const fileData = `data:${mimeType};base64,${data.toString(
-                'base64'
-              )}`;
-              mainWindow.webContents.send('imageUpdated', fileData);
-            })
-            .catch((error) => {
-              // Handle error
-            });
-        }, timeoutDuration);
-      }
-    }
-  });
-} catch (e) {
-  CreateDirectory(documentsPath + '/Pascal/img');
-  CreateDirectory(documentsPath + '/Pascal/paper');
-
-  watch(folderPath, (eventType, filename) => {
-    console.log(eventType, filename, 'File Name');
-    if (eventType === 'change') {
-      if (filename) {
-        oldfilename = filename;
-
-        clearTimeout(timeout);
-
-        timeout = setTimeout(() => {
-          const file = folderPath + filename;
-          const mimeType = `image/${file.split('.').pop()}`;
-          readFile(file)
-            .then((data) => {
-              const fileData = `data:${mimeType};base64,${data.toString(
-                'base64'
-              )}`;
-              mainWindow.webContents.send('imageUpdated', fileData);
-            })
-            .catch((error) => {
-              // Handle error
-            });
-        }, timeoutDuration);
-      }
-    }
-  });
-}
-
-const paperFolderPath = documentsPath + '/Pascal/paper/';
-let paper_oldfilename: string;
-
-watch(paperFolderPath, (eventType, filename) => {
-  console.log(eventType, filename, 'File Name');
-  if (eventType === 'change') {
-    if (paper_oldfilename != filename) {
-      mainWindow.webContents.send('paperUpdated', paperFolderPath + filename);
-      paper_oldfilename = filename;
-    }
-  }
-});
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -231,35 +124,29 @@ const createWindow = async () => {
     }
   });
 
- 
+  const os = process.platform;
 
+  // Example usage
+  if (os === 'win32') {
+    // Windows-specific code
+    pythonProcess = spawn('./Depend/main_p.exe');
 
-  
-const os = process.platform;
+    printProcess = spawn('./Depend/print_paper.exe');
+  } else if (os === 'darwin') {
+    // macOS-specific code
+    pythonProcess = spawn('./Depend/main_p');
 
-// Example usage
-if (os === 'win32') {
-  // Windows-specific code  
-  pythonProcess = spawn('./Depend/main_p.exe');
-  
-  printProcess = spawn('./Depend/print_paper.exe');
-  
-} else if (os === 'darwin') {
-  // macOS-specific code
-  pythonProcess = spawn('./Depend/main_p');
-  
-  printProcess = spawn('./Depend/print_paper');
+    printProcess = spawn('./Depend/print_paper');
 
-  console.log('Running on macOS');
-} else if (os === 'linux') {
-  pythonProcess = spawn('./Depend/main_p');
-  
-  printProcess = spawn('./Depend/print_paper');
+    console.log('Running on macOS');
+  } else if (os === 'linux') {
+    pythonProcess = spawn('./Depend/main_p');
 
-} else {
-  // Unknown operating system
-  console.log('Running on an unknown operating system');
-}
+    printProcess = spawn('./Depend/print_paper');
+  } else {
+    // Unknown operating system
+    console.log('Running on an unknown operating system');
+  }
 
   // Receive data from the executable
   pythonProcess.stdout.on('data', (data) => {
@@ -272,7 +159,6 @@ if (os === 'win32') {
   pythonProcess.on('exit', (code) => {
     console.log(`Executable process exited with code ${code}`);
   });
-
 
   // Receive data from the executable
   printProcess.stdout.on('data', (data) => {
@@ -337,6 +223,7 @@ app
   .whenReady()
   .then(() => {
     createWindow();
+    folderWatchingandCreating();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
@@ -385,8 +272,107 @@ function getPaperSize(value: string) {
   }
 }
 ipcMain.on('print-paper', (event, args) => {
-  console.log(args['image'])
+  console.log(args['image']);
   console.log(getPaperSize(args['papersize']));
   printProcess.stdin.write(args['image'] + '\n');
   printProcess.stdin.write(getPaperSize(args['papersize']) + '\n');
 });
+
+function openLocationInExplorer(url: string) {
+  shell.showItemInFolder(url);
+}
+
+ipcMain.on('openLocation', (event, url) => {
+  openLocationInExplorer(url);
+});
+
+ipcMain.on('ipc-example', async (event, arg) => {
+  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
+  console.log(msgTemplate(arg));
+  event.reply('ipc-example', msgTemplate('pong'));
+});
+
+// Watch the folder for changes
+const folderPath = documentsPath + '/Pascal/img/'; // Provide your folder path here
+
+const CreateFolders = async () => {
+  await createDirectory(documentsPath + '/Pascal/img');
+  await createDirectory(documentsPath + '/Pascal/paper');
+};
+
+ipcMain.handle('imageUpdated', async () => {
+  // Initial scan of the folder to get the list of files
+  let result;
+
+  readdir(folderPath, (err, files) => {
+    if (err) {
+      console.error('Error reading folder:', err);
+      return;
+    }
+    files.map((filename) => {
+      const file = folderPath + filename;
+      const data = readFileSync(file).toString('base64');
+      const mimeType = `image/${file.split('.').pop()}`;
+      const fileData = `data:${mimeType};base64,${data}`;
+
+      mainWindow.webContents.send('imageUpdated', { file, fileData });
+    });
+  });
+
+  console.log(result, 'result........');
+
+  return result;
+});
+
+async function folderWatchingandCreating() {
+  let oldfilename;
+
+  let timeout: string | number | NodeJS.Timeout | undefined;
+
+  const timeoutDuration = 1500;
+
+  try {
+    await CreateFolders();
+
+    watch(folderPath, (eventType, filename) => {
+      console.log(eventType, filename, 'File Name');
+      if (eventType === 'change') {
+        if (filename) {
+          oldfilename = filename;
+
+          clearTimeout(timeout);
+
+          timeout = setTimeout(() => {
+            const file = folderPath + filename;
+            const mimeType = `image/${file.split('.').pop()}`;
+            readFile(file)
+              .then((data) => {
+                const fileData = `data:${mimeType};base64,${data.toString(
+                  'base64'
+                )}`;
+                mainWindow.webContents.send('imageUpdated', { file, fileData });
+              })
+              .catch((error) => {
+                // Handle error
+              });
+          }, timeoutDuration);
+        }
+      }
+    });
+  } catch (e) {
+    console.log('errors', e);
+  }
+
+  const paperFolderPath = documentsPath + '/Pascal/paper/';
+  let paper_oldfilename: string;
+
+  watch(paperFolderPath, (eventType, filename) => {
+    console.log(eventType, filename, 'File Name');
+    if (eventType === 'change') {
+      if (paper_oldfilename != filename) {
+        mainWindow.webContents.send('paperUpdated', paperFolderPath + filename);
+        paper_oldfilename = filename;
+      }
+    }
+  });
+}

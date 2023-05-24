@@ -7,6 +7,7 @@ import { Form, Button, Card, Container, Row, Col } from 'react-bootstrap';
 import ColorPicker from './colorfield';
 import { useNavigate } from 'react-router-dom';
 import { ImageData,PaperSize } from 'renderer/context/context';
+import { GearWideConnected, Images } from 'react-bootstrap-icons';
 
 const colorCodeToRGB = (code: string) => {
   // Split the code into separate R, G, B components
@@ -142,7 +143,7 @@ const Home = () => {
                 }}
               >
                 <h3> Please Choose Images</h3>
-                <Button onClick={handleSelectButtonClick}>Import Images</Button>
+                <Button onClick={handleSelectButtonClick}>  <Images size={20}/>  Import Images</Button>
               </div>
             )}
           </Row>
@@ -157,7 +158,7 @@ const Home = () => {
                   marginTop: 10,
                 }}
               >
-                Import Images
+               <Images size={20}/> Import Images
               </Button>
             </Form>
           </Row>
@@ -284,6 +285,7 @@ const Home = () => {
                 style={{ width: '100%', marginTop: 15 }}
                 disabled={uploading}
               >
+                <GearWideConnected size={20}/> {' '}
                 Generate{' '}
                 {selectedFiles.length > 0 && `(${selectedFiles.length})`}{' '}
                 {selectedFiles.length > 1 ? ' Images' : 'Image'}

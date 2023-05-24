@@ -4,11 +4,18 @@ import loading from '../../../assets/image/loading.gif';
 import Person from '../../../assets/image/img2.jpg';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ImageData, PaperData } from 'renderer/context/context';
+import {
+  ArrowRight,
+  Folder,
+  HouseExclamation,
+  HouseFill,
+} from 'react-bootstrap-icons';
 
 const ImageResult = () => {
   const { imgcount } = useParams();
 
   const [imageList, setImageList] = useState([]);
+  const [imgURL, setImgURL] = useState([]);
 
   const { imgsSelect, setImgsSelect } = useContext(ImageData);
 
@@ -27,7 +34,7 @@ const ImageResult = () => {
 
     image = imgsSelect[indexc - 1];
 
-    console.log(image, indexc - 1, imgsSelect.length);
+   
 
     if (imgcount == imageList.length) {
       setImgsSelect([]);
@@ -41,10 +48,11 @@ const ImageResult = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // window.electron.ipcRenderer.invoke('imageUpdated');
-    window.electron.ipcRenderer.on('imageUpdated', (filename) => {
-      console.log(filename);
-      setImageList((prevList) => [...prevList, filename]);
+ 
+    window.electron.ipcRenderer.on('imageUpdated', ({file,fileData}) => {
+      
+      setImageList((prevList) => [...prevList, fileData]);
+      setImgURL((prev) => [...prev, file]);
     });
 
     return () => {
@@ -54,9 +62,9 @@ const ImageResult = () => {
   useEffect(() => {
     // window.electron.ipcRenderer.invoke('imageUpdated');
     setPaperList([]);
-    
-  window.electron.ipcRenderer.on('paperUpdated', (filename) => {
-      console.log(filename)
+
+    window.electron.ipcRenderer.on('paperUpdated', (filename) => {
+      console.log(filename);
       setPaperList((prevList) => [...prevList, filename]);
     });
 
@@ -69,9 +77,13 @@ const ImageResult = () => {
     navigate('/');
   };
 
-  const gotoPrint = ()=>{
-    navigate('/paper')
-  }
+  const gotoPrint = () => {
+    navigate('/paper');
+  };
+
+  const OpenLocation = async (url) => {
+    await window.electron.ipcRenderer.sendMessage('openLocation', url);
+  };
 
   return (
     <Container
@@ -92,8 +104,8 @@ const ImageResult = () => {
             flexDirection: 'row',
           }}
         >
-          <Button style={{ padding: 10, width: 180 }} onClick={BacktoHome}>
-            Back to Home
+          <Button style={{ padding: 10, width: 180 }} onClick={BacktoHome} disabled={isGenerate}>
+            <HouseFill /> Back to Home
           </Button>
         </Col>
         <Col
@@ -109,7 +121,9 @@ const ImageResult = () => {
           style={{ display: 'flex', justifyContent: 'flex-end', padding: 5 }}
         >
           {imgcount == imageList.length ? (
-            <Button style={{ padding: 10, width: 120 }} onClick={gotoPrint}>Print Image</Button>
+            <Button style={{ padding: 10, width: 120 }} onClick={gotoPrint}>
+              Continue <ArrowRight />
+            </Button>
           ) : (
             <div
               style={{
@@ -140,8 +154,14 @@ const ImageResult = () => {
                 <Col key={index} xs={6} md={3} lg={2}>
                   <Card style={{ marginBottom: '1rem', alignItems: 'center' }}>
                     <Card.Img variant="top" src={file} />
-                    <Card.Body>
-                      <Button variant="primary">Save</Button>
+                    <Card.Body style={{ padding: 5 }}>
+                      <Button
+                        variant="primary"
+                        style={{ fontSize: 13, padding: 5 }}
+                        onClick={()=>OpenLocation(imgURL[index])}
+                      >
+                        <Folder /> Show in Folder
+                      </Button>
                     </Card.Body>
                   </Card>
                 </Col>

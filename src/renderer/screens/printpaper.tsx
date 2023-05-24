@@ -3,9 +3,9 @@ import { Container, Row, Col, Button, Card } from 'react-bootstrap';
 import loading from '../../../assets/image/loading.gif';
 import Person from '../../../assets/image/img2.jpg';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ImageData, PaperData,PaperSize } from 'renderer/context/context';
+import { ImageData, PaperData, PaperSize } from 'renderer/context/context';
 import { nativeImage } from 'electron';
-
+import { Folder, House, Printer } from 'react-bootstrap-icons';
 const PrintPaper = () => {
   const { imgcount } = useParams();
 
@@ -15,7 +15,7 @@ const PrintPaper = () => {
 
   const { paperList, setPaperList } = useContext(PaperData);
 
-  const {papersize,setPSize} = useContext(PaperSize);
+  const { papersize, setPSize } = useContext(PaperSize);
 
   const [isGenerate, setIsGenerate] = useState(true);
 
@@ -34,18 +34,23 @@ const PrintPaper = () => {
     }
   };
 
-  const PrintPaper = async (image:any,papersize:any) => {
+  const PrintPaper = async (image: any, papersize: any) => {
     // calling IPC exposed from preload script
 
-    await window.electron.ipcRenderer.sendMessage('print-paper',{image,papersize})
+    await window.electron.ipcRenderer.sendMessage('print-paper', {
+      image,
+      papersize,
+    });
   };
 
-  const HandlePrint = ()=>{
- 
-      PrintPaper(paperList,papersize);
-      console.log("printing paper",papersize)
- 
-  }
+  const OpenLocation = async () => {
+    await window.electron.ipcRenderer.sendMessage('openLocation', paperList[0]);
+  };
+
+  const HandlePrint = () => {
+    PrintPaper(paperList, papersize);
+    console.log('printing paper', papersize);
+  };
 
   useEffect(() => {
     LoadImg();
@@ -75,7 +80,7 @@ const PrintPaper = () => {
           }}
         >
           <Button style={{ padding: 10, width: 180 }} onClick={BacktoHome}>
-            Back to Home
+          <House size={20}/>{' '}  Back to Home
           </Button>
         </Col>
         <Col
@@ -87,8 +92,21 @@ const PrintPaper = () => {
         >
           <h5>{paperList.length} Pages</h5>
         </Col>
-        <Col>
-          <Button variant='primary' onClick={HandlePrint}>Print</Button>
+        <Col
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <Button variant="primary" onClick={OpenLocation} style={{ margin: 5 }}>
+            <Folder size={25} color={'#fff'} style={{ marginRight: 5 }} />
+            Show in Folder
+          </Button>
+          <Button variant="primary" onClick={HandlePrint} style={{ margin: 5 }}>
+            <Printer size={25} color={'#fff'} style={{ marginRight: 5 }} />
+            Print
+          </Button>
         </Col>
       </Row>
       <div

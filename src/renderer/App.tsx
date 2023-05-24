@@ -6,7 +6,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import ImageResult from './screens/imgresult';
 import PrintPaper from './screens/printpaper';
 import { useMemo, useState } from 'react';
-import { ImageData, PaperData,PaperSize } from './context/context';
+import { ImageData, PaperData, PaperSize } from './context/context';
+import RegisterPage from './screens/Register';
 function Hello() {
   return (
     <div>
@@ -49,7 +50,7 @@ export default function App() {
 
   const [paperList, setPaperList] = useState([]);
 
-  const [papersize,setPSize] = useState('2480,3508');
+  const [papersize, setPSize] = useState('2480,3508');
 
   const SelectValue = useMemo(
     () => ({ imgsSelect, setImgsSelect }),
@@ -61,21 +62,24 @@ export default function App() {
     [paperList, setPaperList]
   );
 
-  const sizeValue = useMemo(()=>({papersize,setPSize}),[papersize,setPSize])
+  const sizeValue = useMemo(
+    () => ({ papersize, setPSize }),
+    [papersize, setPSize]
+  );
 
   return (
     <ImageData.Provider value={SelectValue}>
       <PaperData.Provider value={PaperValue}>
         <PaperSize.Provider value={sizeValue}>
-        <Router>
-          <Routes>
-            
-            <Route path="/" element={<Home />} />
-            {/* <Route path="/" element={<ImageResult />} /> */}
-            <Route path="imgresult/:imgcount" element={<ImageResult />} />
-            <Route path="/paper" element={<PrintPaper />}/>
-          </Routes>
-        </Router>
+          <Router>
+            <Routes>
+              <Route path="/" element={<RegisterPage />} />
+              <Route path="/" element={<Home />} />
+              {/* <Route path="/" element={<ImageResult />} /> */}
+              <Route path="imgresult/:imgcount" element={<ImageResult />} />
+              <Route path="/paper" element={<PrintPaper />} />
+            </Routes>
+          </Router>
         </PaperSize.Provider>
       </PaperData.Provider>
     </ImageData.Provider>
