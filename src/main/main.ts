@@ -21,12 +21,11 @@ import {
 } from 'child_process';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-import { readFile, mkdir } from 'fs/promises';
+import { readFile, mkdir, access, constants } from 'fs/promises';
 import firestore from '../firebase';
 const Store = require('electron-store');
 
-const {download} = require('electron-dl')
-
+const { download } = require('electron-dl');
 
 const store = new Store();
 
@@ -46,11 +45,30 @@ function createDirectory(folderName) {
   });
 }
 
+function checkFileExists(filePath: string) {
+  let boolean;
+  try {
+    return access(filePath, constants.F_OK)
+      .then((res) => {
+        return true;
+      })
+      .catch((err) => {
+        return false;
+      });
+  } catch (err) {
+    console.log('The File Does not exist');
+  }
+
+  return boolean;
+}
+
 // Get the app or remote app object based on the execution context
 const electronApp = app || remote.app;
 
 // Get the user data directory
 const documentsPath = electronApp.getPath('documents');
+
+const HomePath = electronApp.getPath('home');
 
 let pythonProcess: ChildProcessWithoutNullStreams;
 
@@ -305,6 +323,7 @@ const folderPath = documentsPath + '/Pascal/img/'; // Provide your folder path h
 const CreateFolders = async () => {
   await createDirectory(documentsPath + '/Pascal/img');
   await createDirectory(documentsPath + '/Pascal/paper');
+  await createDirectory(HomePath + '/models');
 };
 
 ipcMain.handle('imageUpdated', async () => {
@@ -382,23 +401,22 @@ async function folderWatchingandCreating() {
       }
     }
   });
-} 
+}
 
-
-ipcMain.handle('register_id',(event)=>{
-  let key = store.get('my_key_id')
+ipcMain.handle('register_id', (event) => {
+  let key = store.get('my_key_id');
   return key;
-})
+});
 
-ipcMain.handle('delete_register_id',(event)=>{
-  let key = store.delete('my_key_id')
-})
+ipcMain.handle('delete_register_id', (event) => {
+  let key = store.delete('my_key_id');
+});
 
 ipcMain.handle('create_acc', (event, phoneno) => {
   const collectionRef = firestore.collection('Pascal_Database');
   const documentRef = collectionRef.doc();
 
- return documentRef
+  return documentRef
     .set({
       phoneno: phoneno,
       avaliable: false,
@@ -410,7 +428,7 @@ ipcMain.handle('create_acc', (event, phoneno) => {
       console.log('Document created with ID:', documentId);
 
       store.set('my_key_id', documentRef.id);
-      return documentRef.id
+      return documentRef.id;
     })
     .catch((err) => {
       console.log('Errors');
@@ -420,9 +438,9 @@ ipcMain.handle('create_acc', (event, phoneno) => {
 
 ipcMain.handle('last_avaliable', (event) => {
   let lastavaliable = store.get('last_avaliable');
-  if(lastavaliable){
-    return lastavaliable
-  }else{
+  if (lastavaliable) {
+    return lastavaliable;
+  } else {
     return false;
   }
   return lastavaliable;
@@ -448,4 +466,30 @@ ipcMain.on('key_listen', (event) => {
   } else {
     console.log('No Key ID');
   }
+});
+
+ipcMain.on('download-file', (event, fileUrl) => {
+  const options = {
+    directory: path.join(app.getPath('home'), '.u2net'), // User's directory
+    onProgress: (progress) => {
+      console.log(progress)
+      mainWindow.webContents.send('download-progress', progress);
+    },
+  };
+
+  download(mainWindow, fileUrl, options)
+    .then((dl) => {
+      mainWindow?.webContents.send('download-complete', true);
+    })
+    .catch((error) => {
+      // Handle download error
+      console.error('Download error:', error);
+    });
+});
+
+//Check ML Models Exists or not.
+
+ipcMain.handle('checkmodels', async (event) => {
+  const isfile = checkFileExists(HomePath + '/models/Mobile POS Guideline.pdf');
+  return isfile;
 });

@@ -12,8 +12,8 @@ const electronHandler = {
     on(channel: Channels, func: (...args: unknown[]) => void) {
       const subscription = (_event: IpcRendererEvent, ...args: unknown[]) =>
         func(...args);
-  
-  return      ipcRenderer.on(channel, subscription);
+
+      return ipcRenderer.on(channel, subscription);
 
       return () => {
         ipcRenderer.removeListener(channel, subscription);
@@ -23,13 +23,13 @@ const electronHandler = {
       ipcRenderer.once(channel, (_event, ...args) => func(...args));
     },
     invoke(channel: Channels, args: unknown[]) {
-     return ipcRenderer.invoke(channel, args);
+      return ipcRenderer.invoke(channel, args);
     },
-    removeListener(channel:Channels){
-      return ipcRenderer.removeAllListeners(channel)
-    }
+    removeListener(channel: Channels) {
+      return ipcRenderer.removeAllListeners(channel);
+    },
   },
-  ipcRenderer2: ipcRenderer
+  ipcRenderer2: ipcRenderer,
 };
 
 contextBridge.exposeInMainWorld('electron', electronHandler);
