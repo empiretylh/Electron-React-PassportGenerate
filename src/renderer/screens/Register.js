@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, FormGroup, Container } from 'react-bootstrap';
-import { ArrowRightCircle } from 'react-bootstrap-icons';
+import { ArrowRightCircle,Download as Downl } from 'react-bootstrap-icons';
 
 const RegisterPage = () => {
   const [phoneNo, setPhoneNo] = useState('');
@@ -242,7 +242,7 @@ const RegisterPage = () => {
             cropping images, such as passport photos
           </p>
           <Button onClick={handleDownload} disabled={isDownloading}>
-            {isDownloading ? 'Downloading...' : 'Download'}
+          <Downl/>{' '}{isDownloading ? 'Downloading...' : 'Download'}
           </Button>
 
           {isDownloading && (
