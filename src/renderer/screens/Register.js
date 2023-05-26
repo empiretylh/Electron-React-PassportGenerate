@@ -1,33 +1,3 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-import { Button, Form, FormGroup } from 'react-bootstrap';
-import { ArrowRightCircle } from 'react-bootstrap-icons';
-
-const RegisterPage = () => {
-  const [phoneNo, setPhoneNo] = useState('');
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    console.log(phoneNo);
-  };
-
-  return (
-    <div className="container">
-      <div
-        style={{
-          height: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexDirection: 'column',
-        }}
-      >
-        <h3>Register</h3>
-
-        <div
-          style={{
-            display: 'flex',
-=======
 import React, { useState, useEffect } from 'react';
 import { Button, Form, FormGroup, Container } from 'react-bootstrap';
 import { ArrowRightCircle,Download as Downl } from 'react-bootstrap-icons';
@@ -159,46 +129,10 @@ const RegisterPage = () => {
             height: '100vh',
             display: 'flex',
             alignItems: 'center',
->>>>>>> 2a065f488538723148ea359cfde63625c03aab06
             justifyContent: 'center',
             flexDirection: 'column',
           }}
         >
-<<<<<<< HEAD
-          <Form onSubmit={handleSubmit}>
-            <FormGroup
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'center',
-              }}
-            >
-              <Form.Control
-                id="phoneNo"
-                name="phoneNo"
-                type="text"
-                placeholder="09xxxxxxxxx"
-                maxLength={11}
-                minLength={11}
-                value={phoneNo}
-                onChange={(event) => setPhoneNo(event.target.value)}
-                required
-              />
-              <Button variant="primary" type="submit" style={{ marginLeft: 5 }}>
-                <ArrowRightCircle />
-              </Button>
-            </FormGroup>
-          </Form>
-        </div>
-
-        <p>
-          By registering, you agree to our <a href="#">Terms of Service</a> and{' '}
-          <a href="#">Privacy Policy</a>.
-        </p>
-      </div>
-    </div>
-  );
-=======
         <img src={icon} style={{width:150,height:150}}/>
           <h3>Pascal X</h3>
           <div
@@ -325,7 +259,6 @@ const RegisterPage = () => {
       </Container>
     );
   }
->>>>>>> 2a065f488538723148ea359cfde63625c03aab06
 };
 
 export default RegisterPage;

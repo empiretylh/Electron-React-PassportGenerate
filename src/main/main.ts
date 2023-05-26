@@ -21,9 +21,6 @@ import {
 } from 'child_process';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-<<<<<<< HEAD
-import { readFile, mkdir } from 'fs/promises';
-=======
 import { readFile, mkdir, access, constants } from 'fs/promises';
 import firestore from '../firebase';
 const Store = require('electron-store');
@@ -31,7 +28,6 @@ const Store = require('electron-store');
 const { download } = require('electron-dl');
 
 const store = new Store();
->>>>>>> 2a065f488538723148ea359cfde63625c03aab06
 
 function createDirectory(folderName) {
   return new Promise((resolve, reject) => {
@@ -49,8 +45,6 @@ function createDirectory(folderName) {
   });
 }
 
-<<<<<<< HEAD
-=======
 function checkFileExists(filePath: string) {
   let boolean;
   try {
@@ -68,18 +62,14 @@ function checkFileExists(filePath: string) {
   return boolean;
 }
 
->>>>>>> 2a065f488538723148ea359cfde63625c03aab06
 // Get the app or remote app object based on the execution context
 const electronApp = app || remote.app;
 
 // Get the user data directory
 const documentsPath = electronApp.getPath('documents');
 
-<<<<<<< HEAD
-=======
 const HomePath = electronApp.getPath('home');
 
->>>>>>> 2a065f488538723148ea359cfde63625c03aab06
 let pythonProcess: ChildProcessWithoutNullStreams;
 
 let printProcess: ChildProcessWithoutNullStreams;
@@ -146,11 +136,8 @@ const createWindow = async () => {
     },
   });
 
-<<<<<<< HEAD
-=======
   mainWindow.setMenuBarVisibility(false);
 
->>>>>>> 2a065f488538723148ea359cfde63625c03aab06
   mainWindow.loadURL(resolveHtmlPath('index.html'));
 
   mainWindow.on('ready-to-show', () => {
@@ -338,10 +325,7 @@ const folderPath = documentsPath + '/Pascal/img/'; // Provide your folder path h
 const CreateFolders = async () => {
   await createDirectory(documentsPath + '/Pascal/img');
   await createDirectory(documentsPath + '/Pascal/paper');
-<<<<<<< HEAD
-=======
   await createDirectory(HomePath + '/models');
->>>>>>> 2a065f488538723148ea359cfde63625c03aab06
 };
 
 ipcMain.handle('imageUpdated', async () => {
@@ -420,8 +404,6 @@ async function folderWatchingandCreating() {
     }
   });
 }
-<<<<<<< HEAD
-=======
 
 ipcMain.handle('register_id', (event) => {
   let key = store.get('my_key_id');
@@ -513,4 +495,3 @@ ipcMain.handle('checkmodels', async (event) => {
   const isfile = checkFileExists(HomePath + '/.u2net/silueta.onnx') && checkFileExists(HomePath + '/.u2net/u2net.onnx');
   return isfile;
 });
->>>>>>> 2a065f488538723148ea359cfde63625c03aab06
