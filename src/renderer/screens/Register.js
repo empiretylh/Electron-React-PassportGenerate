@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, FormGroup, Container } from 'react-bootstrap';
 import { ArrowRightCircle,Download as Downl } from 'react-bootstrap-icons';
+import icon from '../../../assets/image/icon.png';
 
 const RegisterPage = () => {
   const [phoneNo, setPhoneNo] = useState('');
@@ -132,12 +133,14 @@ const RegisterPage = () => {
             flexDirection: 'column',
           }}
         >
-          <h3>Register</h3>
+        <img src={icon} style={{width:150,height:150}}/>
+          <h3>Pascal X</h3>
           <div
             style={{
               display: 'flex',
               justifyContent: 'center',
               flexDirection: 'column',
+              marginTop:8
             }}
           >
             {key ? (
@@ -200,7 +203,7 @@ const RegisterPage = () => {
             )}
           </div>
           {!key && (
-            <p style={{ marginTop: 10 }}>
+            <p style={{ marginTop: 10,textAlign:'center' }}>
               <strong>To get started,</strong> we require your phone number for
               registration.
               <br /> Please provide your valid <strong>
@@ -236,7 +239,9 @@ const RegisterPage = () => {
             flexDirection: 'column',
           }}
         >
-          <p style={{ textAlign: 'center' }}>
+        <img src={icon} style={{width:150,height:150}}/>
+          <h3>Pascal X</h3>
+          <p style={{ textAlign: 'center',marginTop:8 }}>
             To utilize this application, you are required to download the AI
             models capable of effectively removing backgrounds and accurately
             cropping images, such as passport photos
