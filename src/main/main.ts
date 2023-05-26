@@ -21,7 +21,17 @@ import {
 } from 'child_process';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+<<<<<<< HEAD
 import { readFile, mkdir } from 'fs/promises';
+=======
+import { readFile, mkdir, access, constants } from 'fs/promises';
+import firestore from '../firebase';
+const Store = require('electron-store');
+
+const { download } = require('electron-dl');
+
+const store = new Store();
+>>>>>>> 2a065f488538723148ea359cfde63625c03aab06
 
 function createDirectory(folderName) {
   return new Promise((resolve, reject) => {
@@ -39,12 +49,37 @@ function createDirectory(folderName) {
   });
 }
 
+<<<<<<< HEAD
+=======
+function checkFileExists(filePath: string) {
+  let boolean;
+  try {
+    return access(filePath, constants.F_OK)
+      .then((res) => {
+        return true;
+      })
+      .catch((err) => {
+        return false;
+      });
+  } catch (err) {
+    console.log('The File Does not exist');
+  }
+
+  return boolean;
+}
+
+>>>>>>> 2a065f488538723148ea359cfde63625c03aab06
 // Get the app or remote app object based on the execution context
 const electronApp = app || remote.app;
 
 // Get the user data directory
 const documentsPath = electronApp.getPath('documents');
 
+<<<<<<< HEAD
+=======
+const HomePath = electronApp.getPath('home');
+
+>>>>>>> 2a065f488538723148ea359cfde63625c03aab06
 let pythonProcess: ChildProcessWithoutNullStreams;
 
 let printProcess: ChildProcessWithoutNullStreams;
@@ -111,6 +146,11 @@ const createWindow = async () => {
     },
   });
 
+<<<<<<< HEAD
+=======
+  mainWindow.setMenuBarVisibility(false);
+
+>>>>>>> 2a065f488538723148ea359cfde63625c03aab06
   mainWindow.loadURL(resolveHtmlPath('index.html'));
 
   mainWindow.on('ready-to-show', () => {
@@ -298,6 +338,10 @@ const folderPath = documentsPath + '/Pascal/img/'; // Provide your folder path h
 const CreateFolders = async () => {
   await createDirectory(documentsPath + '/Pascal/img');
   await createDirectory(documentsPath + '/Pascal/paper');
+<<<<<<< HEAD
+=======
+  await createDirectory(HomePath + '/models');
+>>>>>>> 2a065f488538723148ea359cfde63625c03aab06
 };
 
 ipcMain.handle('imageUpdated', async () => {
@@ -376,3 +420,97 @@ async function folderWatchingandCreating() {
     }
   });
 }
+<<<<<<< HEAD
+=======
+
+ipcMain.handle('register_id', (event) => {
+  let key = store.get('my_key_id');
+  return key;
+});
+
+ipcMain.handle('delete_register_id', (event) => {
+  let key = store.delete('my_key_id');
+});
+
+ipcMain.handle('create_acc', (event, phoneno) => {
+  const collectionRef = firestore.collection('Pascal_Database');
+  const documentRef = collectionRef.doc();
+
+  return documentRef
+    .set({
+      phoneno: phoneno,
+      avaliable: false,
+    })
+    .then((res) => {
+      console.log('Created Sucess', res);
+      // Get the document ID
+      const documentId = documentRef.id;
+      console.log('Document created with ID:', documentId);
+
+      store.set('my_key_id', documentRef.id);
+      return documentRef.id;
+    })
+    .catch((err) => {
+      console.log('Errors');
+      alert(err);
+    });
+});
+
+ipcMain.handle('last_avaliable', (event) => {
+  let lastavaliable = store.get('last_avaliable');
+  if (lastavaliable) {
+    return lastavaliable;
+  } else {
+    return false;
+  }
+  return lastavaliable;
+});
+
+ipcMain.on('key_listen', (event) => {
+  const collectionRef = firestore.collection('Pascal_Database');
+
+  let my_key_id = store.get('my_key_id');
+
+  if (my_key_id) {
+    console.log('Key ID has');
+
+    const documentRef = collectionRef.doc(my_key_id);
+
+    documentRef.onSnapshot((snapshot) => {
+      console.log(snapshot.data(), 'Change.......');
+      // event.reply('key_listen',snapshot.data())
+       snapshot.data() &&  store.set('last_avaliable', snapshot.data().avaliable);
+
+       snapshot.data() &&  mainWindow?.webContents.send('key_listen', snapshot.data());
+    });
+  } else {
+    console.log('No Key ID');
+  }
+});
+
+ipcMain.on('download-file', (event, fileUrl) => {
+  const options = {
+    directory: path.join(app.getPath('home'), '.u2net'), // User's directory
+    onProgress: (progress) => {
+      console.log(progress)
+      mainWindow.webContents.send('download-progress', progress);
+    },
+  };
+
+  download(mainWindow, fileUrl, options)
+    .then((dl) => {
+      mainWindow?.webContents.send('download-complete', true);
+    })
+    .catch((error) => {
+      // Handle download error
+      console.error('Download error:', error);
+    });
+});
+
+//Check ML Models Exists or not.
+
+ipcMain.handle('checkmodels', async (event) => {
+  const isfile = checkFileExists(HomePath + '/.u2net/silueta.onnx') && checkFileExists(HomePath + '/.u2net/u2net.onnx');
+  return isfile;
+});
+>>>>>>> 2a065f488538723148ea359cfde63625c03aab06

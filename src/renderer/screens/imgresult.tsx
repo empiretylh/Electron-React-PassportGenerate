@@ -22,6 +22,10 @@ const ImageResult = () => {
   const { paperList, setPaperList } = useContext(PaperData);
 
   const [isGenerate, setIsGenerate] = useState(true);
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 2a065f488538723148ea359cfde63625c03aab06
 
   const ComputeGeneratingImage = useMemo(() => {
     let image = imgsSelect[0];

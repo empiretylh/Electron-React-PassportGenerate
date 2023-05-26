@@ -107,7 +107,11 @@ const Home = () => {
     <Container fluid style={{ height: '100vh' }}>
       <Row>
         <Col lg={9}>
+<<<<<<< HEAD
           <h5>Pascal</h5>
+=======
+          <h5>Pascal X</h5>
+>>>>>>> 2a065f488538723148ea359cfde63625c03aab06
           <Row className="imageContainer">
             {selectedFiles.length > 0 ? (
               selectedFiles.map((file, index) => (
