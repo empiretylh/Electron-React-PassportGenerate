@@ -12,19 +12,32 @@ const RegisterPage = () => {
   const [progress, setProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
 
+  const [status, setStatus] = useState('Downloading u2net Models :');
+
+  let isSilueta = true;
+
   //Check Models Exist
-  useEffect(async () => {
+  useEffect(() => {
+    const fetchData = async ()=>{
+      const result = await window.electron.ipcRenderer.invoke('checkmodels');
+      setIsModels(result);
+    }
+
+    fetchData();
+   
+  }, []);
+
+  const CheckISModels = async () => {
     const result = await window.electron.ipcRenderer.invoke('checkmodels');
     setIsModels(result);
     console.log(result);
-  }, []);
+  };
 
   useEffect(() => {
     window.electron.ipcRenderer.on(
       'download-progress',
       (_, downloadProgress) => {
-        
-        setProgress(Math.round(_.percent*100))
+        setProgress(Math.round(_.percent * 100));
         // setProgress(downloadProgress.percent);
       }
     );
@@ -32,20 +45,38 @@ const RegisterPage = () => {
     window.electron.ipcRenderer.on('download-complete', (_, filePath) => {
       setProgress(100);
       setIsDownloading(false);
-      console.log('Download complete!', filePath);
+      console.log('Download complete!', filePath,isSilueta);
+
+      if (isSilueta) {
+       isSilueta = false;
+        DownloadSilueta();
+      } else {
+        CheckISModels();
+      }
     });
 
     return () => {
       window.electron.ipcRenderer.removeListener('download-progress');
       window.electron.ipcRenderer.removeListener('download-complete');
     };
-  }, []);
+  }, [isDownloading,setIsDownloading,setProgress,progress]);
 
   const handleDownload = () => {
     setIsDownloading(true);
+    setStatus('Downloading u2net Model (176 MB) :');
     window.electron.ipcRenderer.sendMessage(
       'download-file',
-      'https://github.com/empiretylh/empire/raw/main/Voting/UCSD%20Voting.apk'
+      'https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx'
+    );
+  };
+
+  const DownloadSilueta = () => {
+   isSilueta = false;
+    setIsDownloading(true);
+    setStatus('Downloading Silueta Model (44.2 MB) :');
+    window.electron.ipcRenderer.sendMessage(
+      'download-file',
+      'https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx'
     );
   };
 
@@ -77,7 +108,7 @@ const RegisterPage = () => {
 
   useEffect(() => {
     getKey();
-  }, []);
+  }, [key,setKey]);
 
   const handleChangePhone = async () => {
     setIsLoading(false);
@@ -118,15 +149,13 @@ const RegisterPage = () => {
                   flexDirection: 'column',
                 }}
               >
-                {' '}
-                <h5>You are registered with this key.</h5>
-                <br />
-                <h4>
+                <h5 style={{padding:0,marginBttom:0}}>You are registered with this key.</h5>
+                
+                <h4 style={{padding:0,marginTop:0}}>
                   <a href={'#'}>({key}) </a> <br />{' '}
                 </h4>
-                <p>
-                  You have to wait when the admin is allow to use this
-                  application.
+                <p style={{textAlign:'center'}}>
+                However, please note that you will need to wait for  <br/>the admin's approval before being able to use this application
                 </p>
               </div>
             ) : (
@@ -192,14 +221,22 @@ const RegisterPage = () => {
     return (
       <Container
         style={{
-          height:'100vh', 
+          height: '100vh',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
         }}
       >
-        <div style={{width:400,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column'}}>
-          <p style={{textAlign:'center'}}>
+        <div
+          style={{
+            width: 400,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+          }}
+        >
+          <p style={{ textAlign: 'center' }}>
             To utilize this application, you are required to download the AI
             models capable of effectively removing backgrounds and accurately
             cropping images, such as passport photos
@@ -208,7 +245,11 @@ const RegisterPage = () => {
             {isDownloading ? 'Downloading...' : 'Download'}
           </Button>
 
-          {isDownloading && <div>Download Progress: {progress}%</div>}
+          {isDownloading && (
+            <div>
+              {status} {progress}%
+            </div>
+          )}
         </div>
       </Container>
     );

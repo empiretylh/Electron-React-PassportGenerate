@@ -459,9 +459,9 @@ ipcMain.on('key_listen', (event) => {
     documentRef.onSnapshot((snapshot) => {
       console.log(snapshot.data(), 'Change.......');
       // event.reply('key_listen',snapshot.data())
-      store.set('last_avaliable', snapshot.data().avaliable);
+       snapshot.data() &&  store.set('last_avaliable', snapshot.data().avaliable);
 
-      mainWindow?.webContents.send('key_listen', snapshot.data());
+       snapshot.data() &&  mainWindow?.webContents.send('key_listen', snapshot.data());
     });
   } else {
     console.log('No Key ID');
@@ -490,6 +490,6 @@ ipcMain.on('download-file', (event, fileUrl) => {
 //Check ML Models Exists or not.
 
 ipcMain.handle('checkmodels', async (event) => {
-  const isfile = checkFileExists(HomePath + '/models/Mobile POS Guideline.pdf');
+  const isfile = checkFileExists(HomePath + '/.u2net/silueta.onnx') && checkFileExists(HomePath + '/.u2net/u2net.onnx');
   return isfile;
 });
