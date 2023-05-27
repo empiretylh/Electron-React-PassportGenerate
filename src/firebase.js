@@ -1,6 +1,6 @@
 import admin from 'firebase-admin'
 
-var serviceAccount = require("./pascal-bea2e-firebase-adminsdk-ei62n-7573fa85ee.json");
+var serviceAccount = require("./pascaljsonsdk.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
@@ -8,5 +8,7 @@ admin.initializeApp({
 
 
 const firestore = admin.firestore()
+
+console.log(firestore,'Fire store;;;;;;')
 
 export default firestore;

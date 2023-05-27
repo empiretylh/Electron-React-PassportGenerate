@@ -325,7 +325,7 @@ const folderPath = documentsPath + '/Pascal/img/'; // Provide your folder path h
 const CreateFolders = async () => {
   await createDirectory(documentsPath + '/Pascal/img');
   await createDirectory(documentsPath + '/Pascal/paper');
-  await createDirectory(HomePath + '/models');
+  await createDirectory(HomePath + '/.u2net');
 };
 
 ipcMain.handle('imageUpdated', async () => {
@@ -433,8 +433,8 @@ ipcMain.handle('create_acc', (event, phoneno) => {
       return documentRef.id;
     })
     .catch((err) => {
-      console.log('Errors');
-      alert(err);
+      console.log('Errors',err);
+     
     });
 });
 

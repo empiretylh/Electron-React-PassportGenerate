@@ -32,8 +32,6 @@ export default function App() {
     [papersize, setPSize]
   );
 
-<<<<<<< HEAD
-=======
   const getData = async () => {
     const result = await window.electron.ipcRenderer.invoke('last_avaliable');
     setIsAvaliable(result);
@@ -52,23 +50,17 @@ export default function App() {
     };
   }, []);
 
->>>>>>> 2a065f488538723148ea359cfde63625c03aab06
   return (
     <ImageData.Provider value={SelectValue}>
       <PaperData.Provider value={PaperValue}>
         <PaperSize.Provider value={sizeValue}>
           <Router>
             <Routes>
-<<<<<<< HEAD
-              <Route path="/" element={<RegisterPage />} />
-              <Route path="/" element={<Home />} />
-=======
               {isAvaliable ? (
                 <Route path="/" element={<Home />} />
               ) : (
                 <Route path="/" element={<RegisterPage />} />
               )}
->>>>>>> 2a065f488538723148ea359cfde63625c03aab06
               {/* <Route path="/" element={<ImageResult />} /> */}
               <Route path="imgresult/:imgcount" element={<ImageResult />} />
               <Route path="/paper" element={<PrintPaper />} />
