@@ -68,11 +68,12 @@ const RegisterPage = () => {
     window.electron.ipcRenderer.sendMessage(
       'download-file',
       'https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx'
+      // 'https://raw.githubusercontent.com/empiretylh/travel-server/master/db.sqlite3'
     );
   };
 
   const DownloadSilueta = () => {
-   isSilueta = false;
+ 
     setIsDownloading(true);
     setStatus('Downloading Silueta Model (44.2 MB) :');
     window.electron.ipcRenderer.sendMessage(
@@ -118,7 +119,7 @@ const RegisterPage = () => {
   };
 
   if (isModels == null) {
-    return <div style={{height:'100vh',display:'flex',justifyContent:'center',alignItems:'ceter'}}>
+    return <div style={{height:'100vh',display:'flex',justifyContent:'center',alignItems:'ceter',backgroundColor:'#fbfbfb'}}>
       <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
         <h5>Loading</h5>
         <img src={loading} style={{width:120}}/>
