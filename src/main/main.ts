@@ -110,7 +110,7 @@ const installExtensions = async () => {
     )
     .catch(console.log);
 };
-
+const os = process.platform;
 const createWindow = async () => {
   if (isDebug) {
     await installExtensions();
@@ -306,7 +306,12 @@ ipcMain.on('print-paper', (event, args) => {
 });
 
 function openLocationInExplorer(url: string) {
-  shell.showItemInFolder(url);
+
+  let eurl = url;
+  if (os === 'win32') {
+    eurl =  url.replace(/\//g, "\\");
+  }
+  shell.showItemInFolder(eurl);
 }
 
 ipcMain.on('openLocation', (event, url) => {
@@ -343,7 +348,7 @@ ipcMain.handle('imageUpdated', async () => {
       const mimeType = `image/${file.split('.').pop()}`;
       const fileData = `data:${mimeType};base64,${data}`;
 
-      mainWindow.webContents.send('imageUpdated', { file, fileData });
+      mainWindow?.webContents.send('imageUpdated', { file, fileData });
     });
   });
 
@@ -378,7 +383,7 @@ async function folderWatchingandCreating() {
                 const fileData = `data:${mimeType};base64,${data.toString(
                   'base64'
                 )}`;
-                mainWindow.webContents.send('imageUpdated', { file, fileData });
+                mainWindow?.webContents.send('imageUpdated', { file, fileData });
               })
               .catch((error) => {
                 // Handle error
@@ -398,7 +403,7 @@ async function folderWatchingandCreating() {
     console.log(eventType, filename, 'File Name');
     if (eventType === 'change') {
       if (paper_oldfilename != filename) {
-        mainWindow.webContents.send('paperUpdated', paperFolderPath + filename);
+        mainWindow?.webContents.send('paperUpdated', paperFolderPath + filename);
         paper_oldfilename = filename;
       }
     }
@@ -461,7 +466,7 @@ ipcMain.on('key_listen', (event) => {
     documentRef.onSnapshot((snapshot) => {
       console.log(snapshot.data(), 'Change.......');
       // event.reply('key_listen',snapshot.data())
-       snapshot.data() &&  store.set('last_avaliable', snapshot.data().avaliable);
+       snapshot.data() &&  store.set('last_avaliable', snapshot.data()?.avaliable);
 
        snapshot.data() &&  mainWindow?.webContents.send('key_listen', snapshot.data());
     });
@@ -473,17 +478,17 @@ ipcMain.on('key_listen', (event) => {
 ipcMain.on('download-file', (event, fileUrl) => {
   const options = {
     directory: path.join(app.getPath('home'), '.u2net'), // User's directory
-    onProgress: (progress) => {
+    onProgress: (progress: any) => {
       console.log(progress)
-      mainWindow.webContents.send('download-progress', progress);
+      mainWindow?.webContents.send('download-progress', progress);
     },
   };
 
   download(mainWindow, fileUrl, options)
-    .then((dl) => {
+    .then((dl:any) => {
       mainWindow?.webContents.send('download-complete', true);
     })
-    .catch((error) => {
+    .catch((error:any) => {
       // Handle download error
       console.error('Download error:', error);
     });

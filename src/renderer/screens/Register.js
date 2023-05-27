@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Form, FormGroup, Container } from 'react-bootstrap';
 import { ArrowRightCircle,Download as Downl } from 'react-bootstrap-icons';
 import icon from '../../../assets/image/icon.png';
+import loading from '../../../assets/image/loading.gif'
 
 const RegisterPage = () => {
   const [phoneNo, setPhoneNo] = useState('');
@@ -14,8 +15,7 @@ const RegisterPage = () => {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const [status, setStatus] = useState('Downloading u2net Models :');
-
-  let isSilueta = true;
+  const [isSilueta, setIsSilueta] = useState(true); // Use useState to store isSilueta
 
   //Check Models Exist
   useEffect(() => {
@@ -49,7 +49,7 @@ const RegisterPage = () => {
       console.log('Download complete!', filePath,isSilueta);
 
       if (isSilueta) {
-       isSilueta = false;
+       setIsSilueta(false);
         DownloadSilueta();
       } else {
         CheckISModels();
@@ -118,7 +118,12 @@ const RegisterPage = () => {
   };
 
   if (isModels == null) {
-    return <div>Loading</div>;
+    return <div style={{height:'100vh',display:'flex',justifyContent:'center',alignItems:'ceter'}}>
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
+        <h5>Loading</h5>
+        <img src={loading} style={{width:120}}/>
+      </div>
+      </div>;
   }
 
   if (isModels) {
