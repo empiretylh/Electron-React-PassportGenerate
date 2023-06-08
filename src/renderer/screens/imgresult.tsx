@@ -105,7 +105,7 @@ const ImageResult = () => {
             flexDirection: 'row',
           }}
         >
-          <Button style={{ padding: 10, width: 180 }} onClick={BacktoHome} disabled={isGenerate}>
+          <Button style={{ padding: 10, width: 180 }} onClick={BacktoHome} >
             <HouseFill /> Back to Home
           </Button>
         </Col>

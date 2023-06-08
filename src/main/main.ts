@@ -24,7 +24,10 @@ import { resolveHtmlPath } from './util';
 import { readFile, mkdir, access, constants } from 'fs/promises';
 import firestore from '../firebase';
 const Store = require('electron-store');
+const WebSocket = require('websocket').w3cwebsocket;
+const serverAddress = 'ws://localhost:13254';
 
+let connection = new WebSocket(serverAddress);
 const { download } = require('electron-dl');
 
 const store = new Store();
@@ -73,8 +76,6 @@ const HomePath = electronApp.getPath('home');
 let pythonProcess: ChildProcessWithoutNullStreams;
 
 let printProcess: ChildProcessWithoutNullStreams;
-
-console.log('Documents folder path:', documentsPath);
 
 class AppUpdater {
   constructor() {
@@ -153,21 +154,26 @@ const createWindow = async () => {
 
   const os = process.platform;
 
-  // Example usage
   if (os === 'win32') {
     // Windows-specific code
-    pythonProcess = spawn('./Depend/main_p.exe');
+    pythonProcess = spawn('./Depend/main_p.exe', [], {
+      stdio: 'inherit',
+    });
 
     printProcess = spawn('./Depend/print_paper.exe');
   } else if (os === 'darwin') {
     // macOS-specific code
-    pythonProcess = spawn('./Depend/main_p');
+    pythonProcess = spawn('./Depend/main_p', [], {
+      stdio: 'inherit',
+    });
 
     printProcess = spawn('./Depend/print_paper');
 
     console.log('Running on macOS');
   } else if (os === 'linux') {
-    pythonProcess = spawn('./Depend/main_p');
+    pythonProcess = spawn('./Depend/main_p', [], {
+      stdio: 'inherit',
+    });
 
     printProcess = spawn('./Depend/print_paper');
   } else {
@@ -175,22 +181,26 @@ const createWindow = async () => {
     console.log('Running on an unknown operating system');
   }
 
-  // Receive data from the executable
-  pythonProcess.stdout.on('data', (data) => {
-    const receivedData = data.toString().trim();
-    // Handle received data in your Electron.js app
-    console.log('Received data from Python:', receivedData);
-  });
+  connection.onopen = () => {
+    console.log('WebSocket connection established');
+  };
+  connection.onmessage = (event: any) => {
+    const message = event.data;
+    console.log('Received message:', message);
 
-  // Handle executable process exit
-  pythonProcess.on('exit', (code) => {
-    console.log(`Executable process exited with code ${code}`);
-  });
+    if (message.startsWith('IMG:')) {
+      const path = message.substring(4);
+      ListenImageFromPython(path);
+    } else if (message.startsWith('PAPER:')) {
+      const path = message.substring(6);
+      ListenPaperFromPython(path);
+    }
+  };
 
   // Receive data from the executable
   printProcess.stdout.on('data', (data) => {
-    const receivedData = data.toString().trim();
-    // Handle received data in your Electron.js app
+    const receivedData: string = data.toString().trim();
+
     console.log('Received data from Python:', receivedData);
   });
 
@@ -217,25 +227,20 @@ const createWindow = async () => {
   new AppUpdater();
 };
 
-/**
- * Add event listeners...
- */
-
-// Sending data from Electron.js to the executable
-function sendToExecutable(data: string) {
-  pythonProcess.stdin.write(data + '\n');
-  console.log('Exectuable Runned', data);
-}
-
 ipcMain.on('runExecutable', (event, { arg }) => {
-  sendToExecutable(arg[0]);
-  sendToExecutable(arg[1]);
-  sendToExecutable(arg[2]);
-  sendToExecutable(arg[3]);
-  sendToExecutable(arg[4]);
-  sendToExecutable(arg[5]);
+  try {
+    connection.send('Images:' + arg[0]);
+    connection.send('Qty:' + arg[1]);
+    connection.send('ImgSize:' + arg[2]);
+    connection.send('PaperSize:' + arg[3]);
+    connection.send('Bw:' + arg[4]);
+    connection.send('BgColor:' + arg[5]);
+    connection.send('start_processing');
 
-  console.log('Finsished');
+    console.log('Finsished');
+  } catch (e) {
+    connection = new WebSocket(serverAddress);
+  }
 });
 
 app.on('window-all-closed', () => {
@@ -306,10 +311,9 @@ ipcMain.on('print-paper', (event, args) => {
 });
 
 function openLocationInExplorer(url: string) {
-
   let eurl = url;
   if (os === 'win32') {
-    eurl =  url.replace(/\//g, "\\");
+    eurl = url.replace(/\//g, '\\');
   }
   shell.showItemInFolder(eurl);
 }
@@ -367,47 +371,34 @@ async function folderWatchingandCreating() {
   try {
     await CreateFolders();
 
-    watch(folderPath, (eventType, filename) => {
-      console.log(eventType, filename, 'File Name');
-      if (eventType === 'change') {
-        if (filename) {
-          oldfilename = filename;
+    // watch(folderPath, (eventType, filename) => {
+    //   console.log(eventType, filename, 'File Name');
+    //   if (eventType === 'change') {
+    //     if (filename) {
+    //       oldfilename = filename;
 
-          clearTimeout(timeout);
+    //       clearTimeout(timeout);
 
-          timeout = setTimeout(() => {
-            const file = folderPath + filename;
-            const mimeType = `image/${file.split('.').pop()}`;
-            readFile(file)
-              .then((data) => {
-                const fileData = `data:${mimeType};base64,${data.toString(
-                  'base64'
-                )}`;
-                mainWindow?.webContents.send('imageUpdated', { file, fileData });
-              })
-              .catch((error) => {
-                // Handle error
-              });
-          }, timeoutDuration);
-        }
-      }
-    });
+    //       timeout = setTimeout(() => {
+    //         const file = folderPath + filename;
+    //         const mimeType = `image/${file.split('.').pop()}`;
+    //         readFile(file)
+    //           .then((data) => {
+    //             const fileData = `data:${mimeType};base64,${data.toString(
+    //               'base64'
+    //             )}`;
+    //             mainWindow?.webContents.send('imageUpdated', { file, fileData });
+    //           })
+    //           .catch((error) => {
+    //             // Handle error
+    //           });
+    //       }, timeoutDuration);
+    //     }
+    //   }
+    // });
   } catch (e) {
     console.log('errors', e);
   }
-
-  const paperFolderPath = documentsPath + '/Pascal/paper/';
-  let paper_oldfilename: string;
-
-  watch(paperFolderPath, (eventType, filename) => {
-    console.log(eventType, filename, 'File Name');
-    if (eventType === 'change') {
-      if (paper_oldfilename != filename) {
-        mainWindow?.webContents.send('paperUpdated', paperFolderPath + filename);
-        paper_oldfilename = filename;
-      }
-    }
-  });
 }
 
 ipcMain.handle('register_id', (event) => {
@@ -438,8 +429,7 @@ ipcMain.handle('create_acc', (event, phoneno) => {
       return documentRef.id;
     })
     .catch((err) => {
-      console.log('Errors',err);
-     
+      console.log('Errors', err);
     });
 });
 
@@ -466,9 +456,11 @@ ipcMain.on('key_listen', (event) => {
     documentRef.onSnapshot((snapshot) => {
       console.log(snapshot.data(), 'Change.......');
       // event.reply('key_listen',snapshot.data())
-       snapshot.data() &&  store.set('last_avaliable', snapshot.data()?.avaliable);
+      snapshot.data() &&
+        store.set('last_avaliable', snapshot.data()?.avaliable);
 
-       snapshot.data() &&  mainWindow?.webContents.send('key_listen', snapshot.data());
+      snapshot.data() &&
+        mainWindow?.webContents.send('key_listen', snapshot.data());
     });
   } else {
     console.log('No Key ID');
@@ -479,16 +471,16 @@ ipcMain.on('download-file', (event, fileUrl) => {
   const options = {
     directory: path.join(app.getPath('home'), '.u2net'), // User's directory
     onProgress: (progress: any) => {
-      console.log(progress)
+      console.log(progress);
       mainWindow?.webContents.send('download-progress', progress);
     },
   };
 
   download(mainWindow, fileUrl, options)
-    .then((dl:any) => {
+    .then((dl: any) => {
       mainWindow?.webContents.send('download-complete', true);
     })
-    .catch((error:any) => {
+    .catch((error: any) => {
       // Handle download error
       console.error('Download error:', error);
     });
@@ -497,6 +489,27 @@ ipcMain.on('download-file', (event, fileUrl) => {
 //Check ML Models Exists or not.
 
 ipcMain.handle('checkmodels', async (event) => {
-  const isfile = checkFileExists(HomePath + '/.u2net/silueta.onnx') && checkFileExists(HomePath + '/.u2net/u2net.onnx');
+  const isfile =
+    checkFileExists(HomePath + '/.u2net/silueta.onnx') &&
+    checkFileExists(HomePath + '/.u2net/u2net.onnx');
   return isfile;
 });
+
+function ListenImageFromPython(path: string) {
+  const file = path;
+  const mimeType = `image/${file.split('.').pop()}`;
+  readFile(file)
+    .then((data) => {
+      const fileData = `data:${mimeType};base64,${data.toString('base64')}`;
+      mainWindow?.webContents.send('imageUpdated', { file, fileData });
+    })
+    .catch((error) => {
+      // Handle error
+    });
+}
+
+function ListenPaperFromPython(path: string) {
+  const file = path;
+
+  mainWindow?.webContents.send('paperUpdated', file);
+}
