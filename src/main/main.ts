@@ -123,16 +123,19 @@ function runServerFile() {
     if (os === 'win32') {
       // Windows-specific code
       pythonProcess = spawn('./Depend/main_p.exe', [], {
-        stdio: 'inherit',
+        detached:true,
+        stdio: 'ignore',
       });
     } else if (os === 'darwin') {
       // macOS-specific code
       pythonProcess = spawn('./Depend/main_p', [], {
-        stdio: 'inherit',
+        detached:true,
+        stdio: 'ignore',
       });
     } else if (os === 'linux') {
       pythonProcess = spawn('./Depend/main_p', [], {
-        stdio: 'inherit',
+        detached:true,
+        stdio: 'ignore',
       });
     } else {
       // Unknown operating system
