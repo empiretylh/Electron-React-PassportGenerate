@@ -24,11 +24,15 @@ import { resolveHtmlPath } from './util';
 import { readFile, mkdir, access, constants } from 'fs/promises';
 import firestore from '../firebase';
 const Store = require('electron-store');
-const WebSocket = require('websocket').w3cwebsocket;
-const serverAddress = 'ws://localhost:13254';
-
-let connection = new WebSocket(serverAddress);
 const { download } = require('electron-dl');
+import WebSocket from 'ws';
+
+let connection: WebSocket | null = null;
+
+function connectToTheWebsocketServer() {
+  connection = new WebSocket('ws://127.0.0.1:13254');
+  console.log('WebSocket Connected');
+}
 
 const store = new Store();
 
@@ -73,7 +77,7 @@ const documentsPath = electronApp.getPath('documents');
 
 const HomePath = electronApp.getPath('home');
 
-let pythonProcess: ChildProcessWithoutNullStreams;
+let pythonProcess: any;
 
 let printProcess: ChildProcessWithoutNullStreams;
 
@@ -112,6 +116,50 @@ const installExtensions = async () => {
     .catch(console.log);
 };
 const os = process.platform;
+
+function runServerFile() {
+  return new Promise<void>((resolve, reject) => {
+    let pythonProcess;
+    if (os === 'win32') {
+      // Windows-specific code
+      pythonProcess = spawn('./Depend/main_p.exe', [], {
+        stdio: 'inherit',
+      });
+    } else if (os === 'darwin') {
+      // macOS-specific code
+      pythonProcess = spawn('./Depend/main_p', [], {
+        stdio: 'inherit',
+      });
+    } else if (os === 'linux') {
+      pythonProcess = spawn('./Depend/main_p', [], {
+        stdio: 'inherit',
+      });
+    } else {
+      // Unknown operating system
+      console.log('Running on an unknown operating system');
+    }
+
+    pythonProcess?.stdout?.on('data', (data: any) => {
+      console.log(`Python server output: ${data}`);
+
+      // Check if the server is ready
+      if (data.includes('WebSocket server started')) {
+        resolve();
+      }
+    });
+
+    pythonProcess?.stderr?.on('data', (data: any) => {
+      console.error(`Python server error: ${data}`);
+      reject(new Error(data));
+    });
+
+    pythonProcess?.on('close', (code: any) => {
+      console.log(`Python server process exited with code ${code}`);
+      reject(new Error(`Python server process exited with code ${code}`));
+    });
+  });
+}
+
 const createWindow = async () => {
   if (isDebug) {
     await installExtensions();
@@ -155,30 +203,24 @@ const createWindow = async () => {
   const os = process.platform;
 
   if (os === 'win32') {
-    // Windows-specific code
-    pythonProcess = spawn('./Depend/main_p.exe', [], {
-      stdio: 'inherit',
-    });
-
     printProcess = spawn('./Depend/print_paper.exe');
   } else if (os === 'darwin') {
-    // macOS-specific code
-    pythonProcess = spawn('./Depend/main_p', [], {
-      stdio: 'inherit',
-    });
-
     printProcess = spawn('./Depend/print_paper');
-
-    console.log('Running on macOS');
   } else if (os === 'linux') {
-    pythonProcess = spawn('./Depend/main_p', [], {
-      stdio: 'inherit',
-    });
-
     printProcess = spawn('./Depend/print_paper');
   } else {
     // Unknown operating system
     console.log('Running on an unknown operating system');
+  }
+
+  try {
+    await runServerFile();
+
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    connectToTheWebsocketServer();
+  } catch (error) {
+    console.error('Failed to run Python FIle', error);
   }
 
   connection.onopen = () => {
@@ -229,17 +271,48 @@ const createWindow = async () => {
 
 ipcMain.on('runExecutable', (event, { arg }) => {
   try {
-    connection.send('Images:' + arg[0]);
-    connection.send('Qty:' + arg[1]);
-    connection.send('ImgSize:' + arg[2]);
-    connection.send('PaperSize:' + arg[3]);
-    connection.send('Bw:' + arg[4]);
-    connection.send('BgColor:' + arg[5]);
-    connection.send('start_processing');
+    if (connection) {
+      console.log('Connection Shi thi');
+      connection.send('Images:' + arg[0]);
+      connection.send('Qty:' + arg[1]);
+      connection.send('ImgSize:' + arg[2]);
+      connection.send('PaperSize:' + arg[3]);
+      connection.send('Bw:' + arg[4]);
+      connection.send('BgColor:' + arg[5]);
+      connection.send('start_processing');
+    } else {
+      connection = new WebSocket('ws://127.0.0.1:13254');
+      connection.onopen = () => {
+        console.log('WebSocket connection established');
+        connection.send('Images:' + arg[0]);
+        connection.send('Qty:' + arg[1]);
+        connection.send('ImgSize:' + arg[2]);
+        connection.send('PaperSize:' + arg[3]);
+        connection.send('Bw:' + arg[4]);
+        connection.send('BgColor:' + arg[5]);
+        connection.send('start_processing');
+      };
+    }
 
-    console.log('Finsished');
+    if (connection) {
+    
+      connection.onmessage = (event: any) => {
+        const message = event.data;
+        console.log('Received message:', message);
+
+        if (message.startsWith('IMG:')) {
+          const path = message.substring(4);
+          ListenImageFromPython(path);
+        } else if (message.startsWith('PAPER:')) {
+          const path = message.substring(6);
+          ListenPaperFromPython(path);
+        }
+      };
+
+      console.log('Finsished');
+    }
   } catch (e) {
-    connection = new WebSocket(serverAddress);
+    console.log(e);
   }
 });
 
