@@ -1,0 +1,32 @@
+.hcard-img{
+    width:100% !important;
+    height:250px !important; 
+    object-fit: cover !important;
+    transition: transform 0.3s ease !important;
+}
+
+.hcard-text{
+    text-align: center !important;
+    font-weight: bold !important;
+    font-size: large !important;
+    padding: 10px !important;
+    color:white !important;
+
+}
+
+.hcard {
+    position: relative !important;
+    overflow: hidden !important;
+    background-color: rgb(27, 27, 27) !important;
+}
+
+.hcard:hover{
+    background-color: rgba(59, 110, 250, 0.918) !important;
+    transform: scale(1.05) !important;
+}
+
+.hcard:hover .card-img{
+    transform: scale(1.5) !important;
+}
+
+  

@@ -11,7 +11,7 @@ const ColorPicker = ({color,setColor}) => {
 
     return (
         <Form.Group controlId="colorPicker">
-            <Form.Label>Color Picker:</Form.Label>
+            <Form.Label>Background Color:</Form.Label>
 
             <div className="d-flex align-items-center">
                 <InputGroup>

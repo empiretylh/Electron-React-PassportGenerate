@@ -120,26 +120,30 @@ const os = process.platform;
 function runServerFile() {
   return new Promise<void>((resolve, reject) => {
     let pythonProcess;
-    if (os === 'win32') {
-      // Windows-specific code
-      pythonProcess = spawn('./Depend/main_p.exe', [], {
-        detached:true,
-        stdio: 'ignore',
-      });
-    } else if (os === 'darwin') {
-      // macOS-specific code
-      pythonProcess = spawn('./Depend/main_p', [], {
-        detached:true,
-        stdio: 'ignore',
-      });
-    } else if (os === 'linux') {
-      pythonProcess = spawn('./Depend/main_p', [], {
-        detached:true,
-        stdio: 'ignore',
-      });
+    if (!connection) {
+      if (os === 'win32') {
+        // Windows-specific code
+        pythonProcess = spawn('./Depend/main_p.exe', [], {
+          detached: true,
+          stdio: 'ignore',
+        });
+      } else if (os === 'darwin') {
+        // macOS-specific code
+        pythonProcess = spawn('./Depend/main_p', [], {
+          detached: true,
+          stdio: 'ignore',
+        });
+      } else if (os === 'linux') {
+        pythonProcess = spawn('./Depend/main_p', [], {
+          detached: true,
+          stdio: 'ignore',
+        });
+      } else {
+        // Unknown operating system
+        console.log('Running on an unknown operating system');
+      }
     } else {
-      // Unknown operating system
-      console.log('Running on an unknown operating system');
+      resolve();
     }
 
     pythonProcess?.stdout?.on('data', (data: any) => {
@@ -272,33 +276,33 @@ const createWindow = async () => {
   new AppUpdater();
 };
 
+function SendMessage(arg) {
+  connection?.send('Images:' + arg[0]);
+  connection?.send('Qty:' + arg[1]);
+  connection?.send('ImgSize:' + arg[2]);
+  connection?.send('PaperSize:' + arg[3]);
+  connection?.send('Bw:' + arg[4]);
+  connection?.send('BgColor:' + arg[5]);
+  connection?.send('Mode:pasport');
+  connection?.send('FMode:false');
+  connection?.send('start_processing');
+  
+}
+
 ipcMain.on('runExecutable', (event, { arg }) => {
   try {
     if (connection) {
       console.log('Connection Shi thi');
-      connection.send('Images:' + arg[0]);
-      connection.send('Qty:' + arg[1]);
-      connection.send('ImgSize:' + arg[2]);
-      connection.send('PaperSize:' + arg[3]);
-      connection.send('Bw:' + arg[4]);
-      connection.send('BgColor:' + arg[5]);
-      connection.send('start_processing');
+      SendMessage(arg);
     } else {
       connection = new WebSocket('ws://127.0.0.1:13254');
       connection.onopen = () => {
         console.log('WebSocket connection established');
-        connection.send('Images:' + arg[0]);
-        connection.send('Qty:' + arg[1]);
-        connection.send('ImgSize:' + arg[2]);
-        connection.send('PaperSize:' + arg[3]);
-        connection.send('Bw:' + arg[4]);
-        connection.send('BgColor:' + arg[5]);
-        connection.send('start_processing');
+        SendMessage(arg);
       };
     }
 
     if (connection) {
-    
       connection.onmessage = (event: any) => {
         const message = event.data;
         console.log('Received message:', message);
@@ -345,14 +349,16 @@ ipcMain.handle('open-files-dialog', async () => {
     properties: ['openFile', 'multiSelections'],
     filters: [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'gif'] }],
   });
+  const qtys = []
 
   const fileData = result.filePaths.map((filePath) => {
     const data = readFileSync(filePath).toString('base64');
     const mimeType = `image/${filePath.split('.').pop()}`;
+    qtys.push(1);
     return `data:${mimeType};base64,${data}`;
   });
 
-  return { imgdata: fileData, uridata: result.filePaths };
+  return { imgdata: fileData, uridata: result.filePaths,qtys:qtys };
 });
 
 ipcMain.handle('uritoimg', async (event, fileuri) => {

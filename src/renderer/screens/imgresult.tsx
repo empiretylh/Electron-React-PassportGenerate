@@ -75,7 +75,7 @@ const ImageResult = () => {
   }, []);
 
   const BacktoHome = () => {
-    navigate('/');
+    navigate('/passportmaker');
   };
 
   const gotoPrint = () => {

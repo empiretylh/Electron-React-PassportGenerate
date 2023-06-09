@@ -6,8 +6,8 @@ import { useState, useRef, useEffect, useContext } from 'react';
 import { Form, Button, Card, Container, Row, Col } from 'react-bootstrap';
 import ColorPicker from './colorfield';
 import { useNavigate } from 'react-router-dom';
-import { ImageData,PaperSize } from 'renderer/context/context';
-import { GearWideConnected, Images } from 'react-bootstrap-icons';
+import { ImageData, PaperSize } from 'renderer/context/context';
+import { GearWideConnected, House, Images } from 'react-bootstrap-icons';
 
 const colorCodeToRGB = (code: string) => {
   // Split the code into separate R, G, B components
@@ -41,12 +41,11 @@ const Home = () => {
 
   useEffect(() => {
     setImgsize(`${imageWidth},${imageHeight}`);
-   
   }, [imageWidth, imageHeight]);
 
-  useEffect(()=>{
-     setPSize(paperSize);
-  },[paperSize,setPaperSize])
+  useEffect(() => {
+    setPSize(paperSize);
+  }, [paperSize, setPaperSize]);
 
   function runExecutable() {
     const imguri = selectedURI.join(',');
@@ -69,7 +68,7 @@ const Home = () => {
   }
 
   async function handleSelectButtonClick() {
-    const result = await window.electron.ipcRenderer.invoke(
+    const result = await window.electron.ipcRenderer?.invoke(
       'open-files-dialog'
     );
     if (result.imgdata && result.uridata) {
@@ -103,11 +102,17 @@ const Home = () => {
     setSelectedURI([]);
   };
 
+  const BackToMenu = () => {
+    navigate('/');
+  };
+
   return (
     <Container fluid style={{ height: '100vh' }}>
+      <Button style={{marginLeft:-15}} onClick={BackToMenu}>
+        <House /> Back To Home
+      </Button>
       <Row>
         <Col lg={9}>
-          <h5>Pascal X</h5>
           <Row className="imageContainer">
             {selectedFiles.length > 0 ? (
               selectedFiles.map((file, index) => (
@@ -143,7 +148,10 @@ const Home = () => {
                 }}
               >
                 <h3> Please Choose Images</h3>
-                <Button onClick={handleSelectButtonClick}>  <Images size={20}/>  Import Images</Button>
+                <Button onClick={handleSelectButtonClick}>
+                  {' '}
+                  <Images size={20} /> Import Images
+                </Button>
               </div>
             )}
           </Row>
@@ -158,7 +166,7 @@ const Home = () => {
                   marginTop: 10,
                 }}
               >
-               <Images size={20}/> Import Images
+                <Images size={20} /> Import Images
               </Button>
             </Form>
           </Row>
@@ -285,8 +293,7 @@ const Home = () => {
                 style={{ width: '100%', marginTop: 15 }}
                 disabled={uploading}
               >
-                <GearWideConnected size={20}/> {' '}
-                Generate{' '}
+                <GearWideConnected size={20} /> Generate{' '}
                 {selectedFiles.length > 0 && `(${selectedFiles.length})`}{' '}
                 {selectedFiles.length > 1 ? ' Images' : 'Image'}
               </Button>

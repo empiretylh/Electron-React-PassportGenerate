@@ -1,6 +1,8 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
-import Home from './screens/home';
+import PassportMaker from './screens/PassportMaker';
+import BeautyMaker from './screens/BeautyMaker';
+import Home from './screens/Home';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import ImageResult from './screens/imgresult';
 import PrintPaper from './screens/printpaper';
@@ -62,6 +64,8 @@ export default function App() {
                 <Route path="/" element={<RegisterPage />} />
               )}
               {/* <Route path="/" element={<ImageResult />} /> */}
+              <Route path='/passportmaker' element={<PassportMaker/>}/>
+              <Route path='/beautymaker' element={<BeautyMaker/>}/>
               <Route path="imgresult/:imgcount" element={<ImageResult />} />
               <Route path="/paper" element={<PrintPaper />} />
             </Routes>

@@ -57,7 +57,7 @@ const PrintPaper = () => {
   }, [paperList, setPaperList]);
 
   const BacktoHome = () => {
-    navigate('/');
+    navigate('/passportmaker');
   };
 
   return (
