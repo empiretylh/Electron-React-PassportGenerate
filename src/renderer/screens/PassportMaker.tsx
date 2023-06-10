@@ -7,8 +7,8 @@ import { Form, Button, Card, Container, Row, Col } from 'react-bootstrap';
 import ColorPicker from './colorfield';
 import { useNavigate } from 'react-router-dom';
 import { ImageData, PaperSize } from 'renderer/context/context';
-import { GearWideConnected, House, Images } from 'react-bootstrap-icons';
-
+import { GearWideConnected, HouseFill, Images } from 'react-bootstrap-icons';
+import icon from '../../../assets/image/icon.png'
 const colorCodeToRGB = (code: string) => {
   // Split the code into separate R, G, B components
   const r = parseInt(code.substring(0, 2), 16);
@@ -107,11 +107,35 @@ const Home = () => {
   };
 
   return (
-    <Container fluid style={{ height: '100vh' }}>
-      <Button style={{marginLeft:-15}} onClick={BackToMenu}>
-        <House /> Back To Home
-      </Button>
+    <Container fluid style={{ position:'relative',padding:10 }}>
       <Row>
+        <Col>
+          <div style={{ display: 'flex', flexDirection: 'row' }}>
+            <img
+              src={icon}
+              style={{ width: 50, height: 50, objectFit: 'contain' }}
+            />
+            <div style={{ marginLeft: 10 }}>
+              <h4 style={{ padding: 0 }}>Pascal X</h4>
+              <p style={{ padding: 0, marginTop: -5, fontSize: 15 }}>
+                Passport Photo Maker
+              </p>
+            </div>
+          </div>
+        </Col>
+        <Col
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+          }}
+        >
+          <div onClick={BackToMenu}>
+            <HouseFill size={30} />
+          </div>
+        </Col>
+      </Row>
+         <Row>
         <Col lg={9}>
           <Row className="imageContainer">
             {selectedFiles.length > 0 ? (

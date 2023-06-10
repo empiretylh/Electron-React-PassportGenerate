@@ -26,6 +26,7 @@ import firestore from '../firebase';
 const Store = require('electron-store');
 const { download } = require('electron-dl');
 import WebSocket from 'ws';
+import { send } from 'process';
 
 let connection: WebSocket | null = null;
 
@@ -286,8 +287,20 @@ function SendMessage(arg) {
   connection?.send('Mode:pasport');
   connection?.send('FMode:false');
   connection?.send('start_processing');
-  
 }
+
+
+function GenerateBeauty(arg){
+  connection?.send('Images:' + arg[0]);
+  connection?.send('Qty:' + arg[1]);
+  connection?.send('ImgSize:' + arg[2]);
+  connection?.send('PaperSize:' + arg[3]);
+  connection?.send('FMode:'+arg[4]);
+  connection?.send('Mode:beauty');
+  connection?.send('start_processing')
+}
+
+
 
 ipcMain.on('runExecutable', (event, { arg }) => {
   try {
@@ -322,6 +335,43 @@ ipcMain.on('runExecutable', (event, { arg }) => {
     console.log(e);
   }
 });
+
+
+ipcMain.on('generateBeauty', (event, { arg }) => {
+  try {
+    if (connection) {
+      console.log('Connection Shi thi');
+      GenerateBeauty(arg);
+    } else {
+      connection = new WebSocket('ws://127.0.0.1:13254');
+      connection.onopen = () => {
+        console.log('WebSocket connection established');
+        GenerateBeauty(arg);
+      };
+    }
+
+    if (connection) {
+      connection.onmessage = (event: any) => {
+        const message = event.data;
+        console.log('Received message:', message);
+
+        if (message.startsWith('BUTY:')) {
+          const path = message.substring(5);
+          ListenImageFromPython(path);
+        } else if (message.startsWith('PAPER:')) {
+          const path = message.substring(6);
+          ListenPaperFromPython(path);
+        }
+      };
+
+      console.log('Finsished');
+    }
+  } catch (e) {
+    console.log(e);
+  }
+});
+
+
 
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even
