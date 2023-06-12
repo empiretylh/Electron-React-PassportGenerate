@@ -111,7 +111,7 @@ const BeautyMaker = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     runExecutable();
-    navigate('/imgresult/' + selectedURI.length);
+    navigate('/beautymaker/imgresult/' + selectedURI.length +'/'+paperSize+'/'+imgsize);
     setSelectedFiles([]);
     setSelectedURI([]);
   };
@@ -246,7 +246,7 @@ const BeautyMaker = () => {
                 <option value="2480,3508">A4 (8.268 x 11.693 inches) </option>
                 <option value="1200,1800">4x6 (4 x 6 inches) </option>
                 <option value="1748,2480">A5 (6.142 x 8.268 inches)</option>
-                <option value="2550,3300">Legal (8.5 x 14 inches)</option>
+                <option value="2550,4200">Legal (8.5 x 14 inches)</option>
               </Form.Control>
             </Form.Group>
             <Form.Group controlId="Image Size" style={{ marginTop: 15 }}>
@@ -334,6 +334,7 @@ const BeautyMaker = () => {
           </div>
         </Col>
         <Col>
+        {selectedFiles.length > 0 && (
           <div style={{ marginTop: 5, display: 'flex' }}>
             <Button
               style={{
@@ -348,7 +349,7 @@ const BeautyMaker = () => {
               <Crop size={30} style={{ marginRight: 10 }} />
               <span>Crop Images</span>
             </Button>
-          </div>
+          </div>)}
         </Col>
       </Row>
     </Container>

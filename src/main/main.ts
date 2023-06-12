@@ -341,7 +341,12 @@ ipcMain.on('generateBeauty', (event, { arg }) => {
   try {
     if (connection) {
       console.log('Connection Shi thi');
+      connection = new WebSocket('ws://127.0.0.1:13254');
+      connection.onopen = ()=>{
+        
       GenerateBeauty(arg);
+
+    }
     } else {
       connection = new WebSocket('ws://127.0.0.1:13254');
       connection.onopen = () => {

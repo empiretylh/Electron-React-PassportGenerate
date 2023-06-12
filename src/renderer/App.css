@@ -27,7 +27,6 @@
   object-fit: contain;
 }
 
-
 #form-file-upload {
   height: 16rem;
   width: 28rem;
@@ -80,16 +79,14 @@
   left: 0px;
 }
 
-.imageContainer{
-  height:85vh;
+.imageContainer {
+  height: 85vh;
   overflow-y: auto;
   padding: 10px;
   border: #021bff dashed;
-
 }
 
-
-.generatingimg{
+.generatingimg {
   position: absolute;
   top: 35%;
   left: 45%;
@@ -98,11 +95,9 @@
   padding: 10px;
   border-radius: 20px;
   background-color: #fbfbfb;
-  color:'black';
+  color: 'black';
   animation: upDownAnimation 2s ease-in-out infinite;
-
 }
-
 
 @keyframes upDownAnimation {
   0% {
@@ -116,3 +111,14 @@
   }
 }
 
+
+.testcontainer {
+  display: grid;
+  gap: 10px; /* Adjust the gap between images as needed */
+  background-color: #007bff;
+}
+
+
+.paper{
+  
+}

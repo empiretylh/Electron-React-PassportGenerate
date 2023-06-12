@@ -97,7 +97,7 @@ const Home = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     runExecutable();
-    navigate('/imgresult/' + selectedURI.length);
+    navigate('/passportmaker/imgresult/' + selectedURI.length);
     setSelectedFiles([]);
     setSelectedURI([]);
   };
@@ -208,7 +208,7 @@ const Home = () => {
                 <option value="2480,3508">A4 (8.268 x 11.693 inches) </option>
                 <option value="1200,1800">4x6 (4 x 6 inches) </option>
                 <option value="1748,2480">A5 (6.142 x 8.268 inches)</option>
-                <option value="2550,3300">Legal (8.5 x 14 inches)</option>
+                <option value="2550,4200">Legal (8.5 x 14 inches)</option>
               </Form.Control>
             </Form.Group>
 
