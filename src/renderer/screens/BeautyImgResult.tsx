@@ -18,11 +18,13 @@ import {
   Folder,
   HouseExclamation,
   HouseFill,
+  Printer,
+  Save2,
 } from 'react-bootstrap-icons';
 
 import icon from '../../../assets/image/icon.png';
 import Paper from 'renderer/extra/Paper';
-import { UrlWithStringQuery } from 'url';
+import html2canvas from 'html2canvas';
 
 function PhotoCount(
   paperWidth: any,
@@ -61,6 +63,14 @@ const ImageResult = () => {
   const [isGenerate, setIsGenerate] = useState(true);
 
   const ImgContainerRef = useRef(null);
+
+  const PaperRef = useRef(null);
+  let DefaultDPI = 60;
+  const [DPI, setDPI] = useState(DefaultDPI);
+
+  const handleSaveImage = () => {
+    window.electron.ipcRenderer.sendMessage('BSaveToPdf', '_');
+  };
 
   useEffect(() => {
     if (ImgContainerRef.current) {
@@ -103,6 +113,22 @@ const ImageResult = () => {
       window.electron.ipcRenderer.removeListener('imageUpdated');
     };
   }, []);
+
+  useEffect(() => {
+    // window.electron.ipcRenderer.invoke('imageUpdated');
+    setPaperList([]);
+
+    window.electron.ipcRenderer.on('paperUpdated', (filename) => {
+      console.log(filename);
+      setPaperList((prevList) => [...prevList, filename]);
+    });
+
+    return () => {
+      window.electron.ipcRenderer.removeListener('paperUpdated');
+    };
+  }, []);
+
+  
   useEffect(() => {
     // window.electron.ipcRenderer.invoke('imageUpdated');
     setPaperList([]);
@@ -145,17 +171,37 @@ const ImageResult = () => {
     return Object.values(MapedList);
   }, [imageList, paperSize, imagesize]);
 
+  const [position, setPosition] = useState(0);
+
+  const OnRightArrowClick = () => {
+    console.log(position);
+    if (MapedImage) {
+      if (position < MapedImage.length - 1) setPosition((prev) => prev + 1);
+    }
+  };
+
+  const OnLeftArrowClick = () => {
+    console.log(position, MapedImage.length - 1);
+    if (MapedImage) {
+      let mil = MapedImage.length - 1;
+      if (position >= 1) setPosition((prev) => prev - 1);
+    }
+  };
+
+  const PrintPages = () => {
+    window.electron.ipcRenderer.invoke('printtopdf', 'something');
+  };
+
   return (
     <Container
       fluid
       style={{
         position: 'relative',
         padding: 10,
-        paddingBottom:0,
-        width:'99.7vw'
+        paddingBottom: 0,
+        width: '99.7vw',
       }}
     >
-    
       <Col>
         <div style={{ display: 'flex', flexDirection: 'row' }}>
           <img
@@ -184,9 +230,31 @@ const ImageResult = () => {
           height: '87vh',
         }}
       >
-        <Col lg={3}>
-          <Button>Some Button</Button>
-          <Button>Some Button</Button>
+        <Col lg={2}>
+          <Button style={{ width: '100%', padding: 3 }} onClick={PrintPages}>
+            <Printer size={30} /> Print
+          </Button>
+          <Button
+            style={{ width: '100%', padding: 3, marginTop: 8 }}
+            onClick={handleSaveImage}
+          >
+            <Save2 size={30} /> Export PDF
+          </Button>
+        </Col>
+        <Col
+          lg={1}
+          md={1}
+          sm={1}
+          style={{
+            backgroundColor: 'gray',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+          }}
+        >
+          <div onClick={OnLeftArrowClick} className={'arrow-button left'}>
+            {position !== 0 && <ArrowLeftCircleFill size={50} />}
+          </div>
         </Col>
         <Col
           style={{
@@ -194,30 +262,55 @@ const ImageResult = () => {
             position: 'relative',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-around',
+            justifyContent: 'center',
+            flexDirection: 'column',
+
             height: '100%',
           }}
         >
-          <div>
-            <ArrowLeftCircleFill size={50} />
-          </div>
-          {MapedImage &&
-            MapedImage.map((images, index) => (
-              <Paper
-                paperSize={paperSize}
-                imagesize={imagesize}
-                dpi={50}
-                images={images}
-              />
-            ))}
+          {MapedImage.length > 0 && (
+            <Paper
+              paperSize={paperSize}
+              imagesize={imagesize}
+              dpi={DPI}
+              images={MapedImage[position]}
+              ref={PaperRef}
+            />
+          )}
 
-          <div>
-            <ArrowRightCircleFill size={50} />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 10,
+              backgroundColor: '#d9d9d9',
+              borderRadius: 15,
+              padding: 8,
+              textAlign: 'center',
+            }}
+          >
+            {MapedImage && position + 1 + '/' + MapedImage.length}
           </div>
         </Col>
-       
+
+        <Col
+          lg={1}
+          md={1}
+          sm={1}
+          style={{
+            backgroundColor: 'gray',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+          }}
+        >
+          <div onClick={OnRightArrowClick} className={'arrow-button right'}>
+            {MapedImage && position == MapedImage.length - 1 ? null : (
+              <ArrowRightCircleFill size={50} />
+            )}
+          </div>
+        </Col>
       </Row>
-    
+
       {isGenerate && (
         <div className="generatingimg">
           <div

@@ -17,6 +17,7 @@ import {
 } from 'react-bootstrap-icons';
 import icon from '../../../assets/image/icon.png';
 import '../style/beauty.css';
+import html2canvas from 'html2canvas';
 
 const colorCodeToRGB = (code: string) => {
   // Split the code into separate R, G, B components
@@ -111,7 +112,14 @@ const BeautyMaker = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     runExecutable();
-    navigate('/beautymaker/imgresult/' + selectedURI.length +'/'+paperSize+'/'+imgsize);
+    navigate(
+      '/beautymaker/imgresult/' +
+        selectedURI.length +
+        '/' +
+        paperSize +
+        '/' +
+        imgsize
+    );
     setSelectedFiles([]);
     setSelectedURI([]);
   };
@@ -123,6 +131,7 @@ const BeautyMaker = () => {
   const handleCropModeChange = (event) => {
     setSelectedMode(event.target.value);
   };
+
 
   return (
     <Container fluid style={{ position: 'relative', padding: 10 }}>
@@ -334,22 +343,23 @@ const BeautyMaker = () => {
           </div>
         </Col>
         <Col>
-        {selectedFiles.length > 0 && (
-          <div style={{ marginTop: 5, display: 'flex' }}>
-            <Button
-              style={{
-                display: 'flex',
-                width: '100%',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 10,
-              }}
-              onClick={handleSubmit}
-            >
-              <Crop size={30} style={{ marginRight: 10 }} />
-              <span>Crop Images</span>
-            </Button>
-          </div>)}
+          {selectedFiles.length > 0 && (
+            <div style={{ marginTop: 5, display: 'flex' }}>
+              <Button
+                style={{
+                  display: 'flex',
+                  width: '100%',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 10,
+                }}
+                onClick={handleSubmit}
+              >
+                <Crop size={30} style={{ marginRight: 10 }} />
+                <span>Crop Images</span>
+              </Button>
+            </div>
+          )}
         </Col>
       </Row>
     </Container>

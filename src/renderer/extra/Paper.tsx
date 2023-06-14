@@ -1,4 +1,6 @@
 import imgt from '../../../assets/image/h3.png';
+import html2canvas from 'html2canvas';
+import React, { useImperativeHandle, forwardRef, useRef } from 'react';
 
 interface PaperProps {
   paperSize: string;
@@ -9,6 +11,7 @@ interface PaperProps {
   images: never[];
   ilandscape: boolean;
   plandscape: boolean;
+  ref: any;
 }
 
 function swapValue(value1: any, value2: any): any[] {
@@ -33,7 +36,7 @@ function DecideLandscape(
   const landscapeImagesInHeight = Math.floor(paperHeight / imageHeight);
   const landscapeImagesTotal = landscapeImagesInWidth * landscapeImagesInHeight;
 
-  console.log(portraitImagesTotal,landscapeImagesTotal)
+  console.log(portraitImagesTotal, landscapeImagesTotal);
 
   if (portraitImagesTotal > landscapeImagesTotal) {
     return false;
@@ -41,35 +44,45 @@ function DecideLandscape(
   return true;
 }
 
-const Paper = ({
-  paperSize,
-  dpi,
-  margin = 20,
-  imagesize,
-  images,
-  ilandscape = false,
-  plandscape = true,
-}: PaperProps) => {
+const Paper = forwardRef((props, ref) => {
+  let {
+    paperSize,
+    dpi,
+    margin = 20,
+    imagesize,
+    images,
+    ilandscape = false,
+    plandscape = true,
+  }: PaperProps = props;
 
-  let [paperWidth, paperHeight]: string[] = paperSize.split(',');
+  let [pw, ph]: string[] = paperSize.split(',');
 
   let [ImageWidth, ImageHeight]: string[] = imagesize.split(',');
 
+  const ImageRef = useRef(0);
+
   console.log(ImageWidth, ImageHeight);
 
-  margin =  (dpi/300) * parseFloat(margin)
+  useImperativeHandle(ref, () => ({
+    exportImage: exportImage
+  }));
+
+  const exportImage = () => {
+   
+  };
+
+  margin = (dpi / 300) * parseFloat(margin);
 
   let imageWidth: number = parseFloat(ImageWidth) * dpi;
   let imageHeight: number = parseFloat(ImageHeight) * dpi;
 
-  paperWidth = (dpi / 300) * parseFloat(paperWidth);
-  paperHeight = (dpi / 300) * parseFloat(paperHeight);
+  let paperWidth = (dpi / 300) * parseFloat(pw);
+  let paperHeight = (dpi / 300) * parseFloat(ph);
   console.log(imageWidth, imageHeight, paperWidth, paperHeight);
 
   if (DecideLandscape(paperWidth, paperHeight, imageWidth, imageHeight)) {
     [imageWidth, imageHeight] = swapValue(imageWidth, imageHeight);
   }
-
 
   // Generate dynamic image elements
   const imageElements = images.map((img, index) => (
@@ -87,6 +100,7 @@ const Paper = ({
 
   return (
     <div
+      ref={ImageRef}
       style={{
         width: `${paperWidth}px`,
         height: `${paperHeight}px`,
@@ -96,15 +110,14 @@ const Paper = ({
         minHeight: `${paperHeight}px`,
         backgroundColor: 'white',
         transform: plandscape ? 'rotate(-90deg)' : 'rotate(0deg)',
-        transformOrigin:'50% 50%',  
+        transformOrigin: '50% 50%',
         padding: 0,
-        margin:100,
-        
+        margin: 100,
       }}
     >
       {imageElements}
     </div>
   );
-};
+});
 
 export default Paper;

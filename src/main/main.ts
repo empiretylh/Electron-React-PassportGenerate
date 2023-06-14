@@ -183,7 +183,7 @@ const createWindow = async () => {
 
   mainWindow = new BrowserWindow({
     show: false,
-    width: 1024,
+    width: 1200,
     height: 728,
     icon: getAssetPath('icon.png'),
     webPreferences: {
@@ -289,18 +289,15 @@ function SendMessage(arg) {
   connection?.send('start_processing');
 }
 
-
-function GenerateBeauty(arg){
+function GenerateBeauty(arg) {
   connection?.send('Images:' + arg[0]);
   connection?.send('Qty:' + arg[1]);
   connection?.send('ImgSize:' + arg[2]);
   connection?.send('PaperSize:' + arg[3]);
-  connection?.send('FMode:'+arg[4]);
+  connection?.send('FMode:' + arg[4]);
   connection?.send('Mode:beauty');
-  connection?.send('start_processing')
+  connection?.send('start_processing');
 }
-
-
 
 ipcMain.on('runExecutable', (event, { arg }) => {
   try {
@@ -336,17 +333,14 @@ ipcMain.on('runExecutable', (event, { arg }) => {
   }
 });
 
-
 ipcMain.on('generateBeauty', (event, { arg }) => {
   try {
     if (connection) {
       console.log('Connection Shi thi');
       connection = new WebSocket('ws://127.0.0.1:13254');
-      connection.onopen = ()=>{
-        
-      GenerateBeauty(arg);
-
-    }
+      connection.onopen = () => {
+        GenerateBeauty(arg);
+      };
     } else {
       connection = new WebSocket('ws://127.0.0.1:13254');
       connection.onopen = () => {
@@ -376,7 +370,11 @@ ipcMain.on('generateBeauty', (event, { arg }) => {
   }
 });
 
-
+ipcMain.on("BSaveToPdf",(event,{arg})=>{
+  if(connection){
+    connection?.send("start_layout")
+  }
+})
 
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even
@@ -404,7 +402,7 @@ ipcMain.handle('open-files-dialog', async () => {
     properties: ['openFile', 'multiSelections'],
     filters: [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'gif'] }],
   });
-  const qtys = []
+  const qtys = [];
 
   const fileData = result.filePaths.map((filePath) => {
     const data = readFileSync(filePath).toString('base64');
@@ -413,7 +411,7 @@ ipcMain.handle('open-files-dialog', async () => {
     return `data:${mimeType};base64,${data}`;
   });
 
-  return { imgdata: fileData, uridata: result.filePaths,qtys:qtys };
+  return { imgdata: fileData, uridata: result.filePaths, qtys: qtys };
 });
 
 ipcMain.handle('uritoimg', async (event, fileuri) => {
@@ -650,3 +648,27 @@ function ListenPaperFromPython(path: string) {
 
   mainWindow?.webContents.send('paperUpdated', file);
 }
+
+function getPrintHTMLContent(element) {
+  // Return your print window HTML content as a string
+  return `
+    <html>
+      <head>
+        <style>
+          /* CSS styles specific to the print window */
+        </style>
+      </head>
+      <body>
+        <h2>Something</h2>
+      </body>
+    </html>
+  `;
+}
+
+ipcMain.handle('printtopdf', async (event, element) => {
+  const printwindow = new BrowserWindow({ show: true });
+  printwindow.loadURL(
+    'data:text/html;charset=utf-8,' + encodeURIComponent(getPrintHTMLContent(element))
+  );
+  printwindow.show();
+});
