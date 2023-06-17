@@ -1,35 +1,34 @@
 import React from 'react';
 import { Container, Row, Col, Card } from 'react-bootstrap';
-import {GearFill} from 'react-bootstrap-icons'
+import { GearFill } from 'react-bootstrap-icons';
 import icon from '../../../assets/image/icon.png';
-import i1 from '../../../assets/image/h1.jpeg';
-import i2 from '../../../assets/image/h2.jpeg';
+import i1 from '../../../assets/image/h1.png';
+import i2 from '../../../assets/image/h2.png';
 import i3 from '../../../assets/image/h3.png';
 import '../style/home.css';
 import { useNavigate } from 'react-router-dom';
 
-
-
 const Home = () => {
-
   const navigate = useNavigate();
 
-  const goToPassportMaker = () =>{
-    navigate('/passportmaker')
+  const goToPassportMaker = () => {
+    navigate('/passportmaker');
+  };
+
+  const goToBeautyMaker = () => {
+    navigate('/beautymaker');
+  };
+
+  const goToInvitationMaker = () => {
+    navigate('/invitationmaker');
+  };
+
+  const goToSetting = () =>{
+    navigate('/settings');
   }
-
-
-  const goToBeautyMaker = () =>{
-    navigate('/beautymaker')
-  }
-
-  const goToInvitationMaker = () =>{
-    navigate('/invitionmaker')
-  }
-
 
   return (
-    <div style={{display:'flex',backgroundColor:'#fbfbfb'}}>
+    <div style={{ display: 'flex', backgroundColor: '#fbfbfb' }}>
       <Container>
         <div
           style={{
@@ -57,14 +56,17 @@ const Home = () => {
             <Col>
               <Card onClick={goToPassportMaker} className={'hcard'}>
                 <Card.Img src={i1} className={'hcard-img'} />
-                <Card.Text className={'hcard-text'}>Passport Photo Maker</Card.Text>
+                <Card.Text className={'hcard-text'}>
+                  Passport Photo Maker
+                </Card.Text>
               </Card>
-            
             </Col>
             <Col>
-              <Card  onClick={goToBeautyMaker} className='hcard'>
-                <Card.Img src={i2} className={'hcard-img'}  />
-                <Card.Text className={'hcard-text'}>Beauty Photo Maker</Card.Text>
+              <Card onClick={goToBeautyMaker} className="hcard">
+                <Card.Img src={i2} className={'hcard-img'} />
+                <Card.Text className={'hcard-text'}>
+                  Beauty Photo Maker
+                </Card.Text>
               </Card>
             </Col>
             <Col>
@@ -75,9 +77,13 @@ const Home = () => {
             </Col>
           </Row>
         </div>
-        <div style={{position:'absolute',bottom:10,right:15}}>
-          <GearFill size={30}/>
-        </div>
+        <Row>
+          {/* <Col>
+            <div style={{ position: 'absolute', bottom: 10, right: 15 }} onClick={goToSetting}>
+              <GearFill size={30} />
+            </div>
+          </Col> */}
+        </Row>
       </Container>
     </div>
   );

@@ -131,7 +131,7 @@ const Home = () => {
           }}
         >
           <div onClick={BackToMenu}>
-            <HouseFill size={30} />
+            <HouseFill size={40} />
           </div>
         </Col>
       </Row>

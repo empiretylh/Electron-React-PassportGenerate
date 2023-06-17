@@ -15,9 +15,13 @@ import {
   ArrowLeftCircleFill,
   ArrowRight,
   ArrowRightCircleFill,
+  Back,
   Folder,
+  Folder2Open,
+  FolderX,
   HouseExclamation,
   HouseFill,
+  Images,
   Printer,
   Save2,
 } from 'react-bootstrap-icons';
@@ -62,14 +66,30 @@ const ImageResult = () => {
 
   const [isGenerate, setIsGenerate] = useState(true);
 
+  const [isPrint, setIsPrint] = useState(false);
+
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const [loadingStatus, setLoadingStatus] = useState('Printing Images');
+
   const ImgContainerRef = useRef(null);
 
   const PaperRef = useRef(null);
   let DefaultDPI = 60;
   const [DPI, setDPI] = useState(DefaultDPI);
 
-  const handleSaveImage = () => {
-    window.electron.ipcRenderer.sendMessage('BSaveToPdf', '_');
+  const handleSaveImageToPDF = () => {
+    setLoadingStatus('Saving Images To PDF');
+    window.electron.ipcRenderer
+      .invoke('BSaveToPDF')
+      .then((res) => {
+        console.log(res);
+
+        setIsProcessing(true);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   useEffect(() => {
@@ -114,6 +134,15 @@ const ImageResult = () => {
     };
   }, []);
 
+  const PrintPaper = async (image: any, papersize: any) => {
+    // calling IPC exposed from preload script
+    console.log('Printing Img', image, papersize);
+    await window.electron.ipcRenderer.sendMessage('print-paper', {
+      image,
+      papersize,
+    });
+  };
+
   useEffect(() => {
     // window.electron.ipcRenderer.invoke('imageUpdated');
     setPaperList([]);
@@ -121,25 +150,26 @@ const ImageResult = () => {
     window.electron.ipcRenderer.on('paperUpdated', (filename) => {
       console.log(filename);
       setPaperList((prevList) => [...prevList, filename]);
+      console.log('IS Print', isPrint);
+      if (isPrint) {
+        PrintPaper(filename, paperSize);
+      }
     });
 
     return () => {
       window.electron.ipcRenderer.removeListener('paperUpdated');
     };
-  }, []);
+  }, [isPrint]);
 
-  
   useEffect(() => {
-    // window.electron.ipcRenderer.invoke('imageUpdated');
-    setPaperList([]);
-
-    window.electron.ipcRenderer.on('paperUpdated', (filename) => {
+    window.electron.ipcRenderer.on('pdfUpdated', (filename) => {
       console.log(filename);
-      setPaperList((prevList) => [...prevList, filename]);
+      // setPaperList((prevList) => [...prevList, filename]);
+      setIsProcessing(false);
     });
 
     return () => {
-      window.electron.ipcRenderer.removeListener('paperUpdated');
+      window.electron.ipcRenderer.removeListener('pdfUpdated');
     };
   }, []);
 
@@ -189,7 +219,43 @@ const ImageResult = () => {
   };
 
   const PrintPages = () => {
-    window.electron.ipcRenderer.invoke('printtopdf', 'something');
+    // window.electron.ipcRenderer.invoke('imageUpdated');
+    setLoadingStatus('Printing Papers');
+    setPaperList([]);
+
+    setIsPrint(true);
+    setIsProcessing(true);
+    window.electron.ipcRenderer.sendMessage('BSave', '_');
+  };
+
+  //Stop IS Processing when the paper is full to mapedimaged
+
+  useEffect(() => {
+    if (paperList.length >= MapedImage.length) {
+      setIsProcessing(false);
+      setIsPrint(false);
+      // window.electron.ipcRenderer.invoke('imageUpdated');
+      setPaperList([]);
+    }
+  }, [isProcessing, setIsProcessing, setIsPrint, paperList, setPaperList]);
+
+  const saveImagesToFolder = () => {
+    setLoadingStatus('Saving Images To Folder');
+
+    window.electron.ipcRenderer
+      .invoke('BSaveToFolder')
+      .then((res) => {
+        console.log(res);
+
+        setIsProcessing(true);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const BackToMenu = () => {
+    navigate('/beautymaker');
   };
 
   return (
@@ -202,7 +268,15 @@ const ImageResult = () => {
         width: '99.7vw',
       }}
     >
-      <Col>
+      <Col
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          justifyCotent: 'center',
+        }}
+      >
         <div style={{ display: 'flex', flexDirection: 'row' }}>
           <img
             src={icon}
@@ -215,7 +289,11 @@ const ImageResult = () => {
             </p>
           </div>
         </div>
+        <div onClick={BackToMenu}>
+          <HouseFill size={40} />
+        </div>
       </Col>
+
       <div
         style={{
           width: '100%',
@@ -232,13 +310,20 @@ const ImageResult = () => {
       >
         <Col lg={2}>
           <Button style={{ width: '100%', padding: 3 }} onClick={PrintPages}>
-            <Printer size={30} /> Print
+            <Printer size={25} /> Print
           </Button>
           <Button
             style={{ width: '100%', padding: 3, marginTop: 8 }}
-            onClick={handleSaveImage}
+            onClick={handleSaveImageToPDF}
           >
-            <Save2 size={30} /> Export PDF
+            <Save2 size={25} /> Export PDF
+          </Button>
+          <Button
+            style={{ width: '100%', padding: 3, marginTop: 8 }}
+            onClick={saveImagesToFolder}
+          >
+            <Folder2Open size={25} />{' '}
+            {MapedImage.length > 1 ? 'Save To Folder' : 'Save To Folder'}
           </Button>
         </Col>
         <Col
@@ -310,6 +395,24 @@ const ImageResult = () => {
           </div>
         </Col>
       </Row>
+
+      {isProcessing && (
+        <div className="generatingimg">
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <h6 style={{ color: 'black', marginTop: 5 }}>{loadingStatus}</h6>
+            <h6 style={{ color: 'black', marginTop: 5 }}>
+              {paperList.length + '/' + MapedImage.length}
+            </h6>
+            <img src={loading} style={{ width: 100 }} />
+          </div>
+        </div>
+      )}
 
       {isGenerate && (
         <div className="generatingimg">

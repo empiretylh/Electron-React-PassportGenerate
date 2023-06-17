@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, FormGroup, Container } from 'react-bootstrap';
-import { ArrowRightCircle,Download as Downl } from 'react-bootstrap-icons';
+import { ArrowRightCircle, Download as Downl } from 'react-bootstrap-icons';
 import icon from '../../../assets/image/icon.png';
-import loading from '../../../assets/image/loading.gif'
+import loading from '../../../assets/image/loading.gif';
 
 const RegisterPage = () => {
   const [phoneNo, setPhoneNo] = useState('');
@@ -19,13 +19,12 @@ const RegisterPage = () => {
 
   //Check Models Exist
   useEffect(() => {
-    const fetchData = async ()=>{
+    const fetchData = async () => {
       const result = await window.electron.ipcRenderer.invoke('checkmodels');
       setIsModels(result);
-    }
+    };
 
     fetchData();
-   
   }, []);
 
   const CheckISModels = async () => {
@@ -46,10 +45,10 @@ const RegisterPage = () => {
     window.electron.ipcRenderer.on('download-complete', (_, filePath) => {
       setProgress(100);
       setIsDownloading(false);
-      console.log('Download complete!', filePath,isSilueta);
+      console.log('Download complete!', filePath, isSilueta);
 
       if (isSilueta) {
-       setIsSilueta(false);
+        setIsSilueta(false);
         DownloadSilueta();
       } else {
         CheckISModels();
@@ -60,7 +59,7 @@ const RegisterPage = () => {
       window.electron.ipcRenderer.removeListener('download-progress');
       window.electron.ipcRenderer.removeListener('download-complete');
     };
-  }, [isDownloading,setIsDownloading,setProgress,progress]);
+  }, [isDownloading, setIsDownloading, setProgress, progress]);
 
   const handleDownload = () => {
     setIsDownloading(true);
@@ -73,7 +72,6 @@ const RegisterPage = () => {
   };
 
   const DownloadSilueta = () => {
- 
     setIsDownloading(true);
     setStatus('Downloading Silueta Model (44.2 MB) :');
     window.electron.ipcRenderer.sendMessage(
@@ -110,7 +108,10 @@ const RegisterPage = () => {
 
   useEffect(() => {
     getKey();
-  }, [key,setKey]);
+    if (key) {
+      setIsLoading(false);
+    }
+  }, [key, setKey]);
 
   const handleChangePhone = async () => {
     setIsLoading(false);
@@ -119,12 +120,55 @@ const RegisterPage = () => {
   };
 
   if (isModels == null) {
-    return <div style={{height:'100vh',display:'flex',justifyContent:'center',alignItems:'ceter',backgroundColor:'#fbfbfb'}}>
-      <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
-        <h5>Loading</h5>
-        <img src={loading} style={{width:120}}/>
+    return (
+      <div
+        style={{
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'ceter',
+          backgroundColor: '#fbfbfb',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <h5>Loading</h5>
+          <img src={loading} style={{ width: 120 }} />
+        </div>
       </div>
-      </div>;
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'ceter',
+          backgroundColor: '#fbfbfb',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <h5>Loading</h5>
+          <img src={loading} style={{ width: 120 }} />
+        </div>
+      </div>
+    );
   }
 
   if (isModels) {
@@ -139,14 +183,14 @@ const RegisterPage = () => {
             flexDirection: 'column',
           }}
         >
-        <img src={icon} style={{width:150,height:150}}/>
+          <img src={icon} style={{ width: 150, height: 150 }} />
           <h3>Pascal X</h3>
           <div
             style={{
               display: 'flex',
               justifyContent: 'center',
               flexDirection: 'column',
-              marginTop:8
+              marginTop: 8,
             }}
           >
             {key ? (
@@ -158,13 +202,16 @@ const RegisterPage = () => {
                   flexDirection: 'column',
                 }}
               >
-                <h5 style={{padding:0,marginBttom:0}}>You are registered with this key.</h5>
-                
-                <h4 style={{padding:0,marginTop:0}}>
+                <h5 style={{ padding: 0, marginBttom: 0 }}>
+                  You are registered with this key.
+                </h5>
+
+                <h4 style={{ padding: 0, marginTop: 0 }}>
                   <a href={'#'}>({key}) </a> <br />{' '}
                 </h4>
-                <p style={{textAlign:'center'}}>
-                However, please note that you will need to wait for  <br/>the admin's approval before being able to use this application
+                <p style={{ textAlign: 'center' }}>
+                  However, please note that you will need to wait for <br />
+                  the admin's approval before being able to use this application
                 </p>
               </div>
             ) : (
@@ -209,7 +256,7 @@ const RegisterPage = () => {
             )}
           </div>
           {!key && (
-            <p style={{ marginTop: 10,textAlign:'center' }}>
+            <p style={{ marginTop: 10, textAlign: 'center' }}>
               <strong>To get started,</strong> we require your phone number for
               registration.
               <br /> Please provide your valid <strong>
@@ -245,15 +292,15 @@ const RegisterPage = () => {
             flexDirection: 'column',
           }}
         >
-        <img src={icon} style={{width:150,height:150}}/>
+          <img src={icon} style={{ width: 150, height: 150 }} />
           <h3>Pascal X</h3>
-          <p style={{ textAlign: 'center',marginTop:8 }}>
+          <p style={{ textAlign: 'center', marginTop: 8 }}>
             To utilize this application, you are required to download the AI
             models capable of effectively removing backgrounds and accurately
             cropping images, such as passport photos
           </p>
           <Button onClick={handleDownload} disabled={isDownloading}>
-          <Downl/>{' '}{isDownloading ? 'Downloading...' : 'Download'}
+            <Downl /> {isDownloading ? 'Downloading...' : 'Download'}
           </Button>
 
           {isDownloading && (

@@ -360,6 +360,9 @@ ipcMain.on('generateBeauty', (event, { arg }) => {
         } else if (message.startsWith('PAPER:')) {
           const path = message.substring(6);
           ListenPaperFromPython(path);
+        }else if (message.startsWith("PDF:")){
+          const path = message.substring(4);
+          ListenPDFFromPython(path);
         }
       };
 
@@ -370,11 +373,76 @@ ipcMain.on('generateBeauty', (event, { arg }) => {
   }
 });
 
-ipcMain.on("BSaveToPdf",(event,{arg})=>{
-  if(connection){
-    connection?.send("start_layout")
+ipcMain.on('BSave', (event, { arg }) => {
+  if (connection) {
+    connection?.send('start_layout');
   }
-})
+});
+
+ipcMain.handle('BSaveToFolder',async() => {
+  return new Promise((reslove,reject)=>{
+    dialog
+    .showOpenDialog({
+      title: 'Select Folder To Save',
+      defaultPath: '~/Documents/Pascal/Paper',
+      buttonLabel: 'Select & Save Papers',
+      properties: ['openDirectory'],
+    })
+    .then((result) => {
+      if (!result.canceled) {
+        const folderPath = result.filePaths[0];
+        reslove(folderPath);
+        // Do something with the selected folder path
+        console.log('Selected folder:', folderPath);
+
+        if (connection) {
+          connection?.send('start_layout_di:' + folderPath);
+        }
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      reject(err);
+    });
+  })
+
+});
+
+ipcMain.handle('BSaveToPDF', async() => {
+  return new Promise((resolve,reject)=>{
+    
+  dialog
+    .showSaveDialog({
+      title: 'Save To PDF',
+      filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
+      defaultPath:'*/BeautyPhoto.pdf',
+     
+    })
+    .then((result) => {
+      const filePath = result.filePath;
+      if (filePath) {
+        resolve(filePath);
+        // Do something with the selected file path
+
+        console.log('Selected file:', filePath);
+        if (connection) {
+          connection?.send('start_layout_di_pdf:' + filePath);
+        }
+      }
+    })
+    .catch((err) => {
+      reject(err)
+      console.log('Error:', err);
+    });
+
+  })
+});
+
+ipcMain.on('SMTS', (event, { msg }) => {
+  if (connection) {
+    connection?.send(msg);
+  }
+});
 
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even
@@ -536,13 +604,15 @@ async function folderWatchingandCreating() {
   }
 }
 
-ipcMain.handle('register_id', (event) => {
-  let key = store.get('my_key_id');
+ipcMain.handle('register_id', async() => {
+  let key = await store.get('my_key_id');
+  console.log(key)
   return key;
 });
 
 ipcMain.handle('delete_register_id', (event) => {
-  let key = store.delete('my_key_id');
+  store.delete('my_key_id');
+   store.delete('last_avaliable')
 });
 
 ipcMain.handle('create_acc', (event, phoneno) => {
@@ -649,26 +719,7 @@ function ListenPaperFromPython(path: string) {
   mainWindow?.webContents.send('paperUpdated', file);
 }
 
-function getPrintHTMLContent(element) {
-  // Return your print window HTML content as a string
-  return `
-    <html>
-      <head>
-        <style>
-          /* CSS styles specific to the print window */
-        </style>
-      </head>
-      <body>
-        <h2>Something</h2>
-      </body>
-    </html>
-  `;
+function ListenPDFFromPython(path:string){
+  const file = path;
+  mainWindow?.webContents.send('pdfUpdated',file)
 }
-
-ipcMain.handle('printtopdf', async (event, element) => {
-  const printwindow = new BrowserWindow({ show: true });
-  printwindow.loadURL(
-    'data:text/html;charset=utf-8,' + encodeURIComponent(getPrintHTMLContent(element))
-  );
-  printwindow.show();
-});

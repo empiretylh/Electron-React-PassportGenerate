@@ -11,6 +11,8 @@ import { useMemo, useState, useEffect } from 'react';
 import { ImageData, PaperData, PaperSize } from './context/context';
 import RegisterPage from './screens/Register';
 import imgt from '../../assets/image/h3.png';
+import InvitationMaker from './screens/Invitationmaker';
+import Setting from './screens/setting';
 
 export default function App() {
   const [imgsSelect, setImgsSelect] = useState([]);
@@ -66,11 +68,19 @@ export default function App() {
                 <Route path="/" element={<RegisterPage />} />
               )}
               {/* <Route path="/" element={<ImageResult />} /> */}
-              <Route path='/passportmaker' element={<PassportMaker/>}/>
-              <Route path="/passportmaker/imgresult/:imgcount" element={<ImageResult />} />
-              <Route path='/beautymaker' element={<BeautyMaker/>}/>
-              <Route path='/beautymaker/imgresult/:imgcount/:paperSize/:imagesize' element={<BImageResult/>}/>
+              <Route path="/passportmaker" element={<PassportMaker />} />
+              <Route
+                path="/passportmaker/imgresult/:imgcount"
+                element={<ImageResult />}
+              />
+              <Route path="/beautymaker" element={<BeautyMaker />} />
+              <Route
+                path="/beautymaker/imgresult/:imgcount/:paperSize/:imagesize"
+                element={<BImageResult />}
+              />
+              <Route path="/invitationmaker" element={<InvitationMaker />} />
               <Route path="/paper" element={<PrintPaper />} />
+              <Route path="/settings" element={<Setting />} />
             </Routes>
           </Router>
         </PaperSize.Provider>
