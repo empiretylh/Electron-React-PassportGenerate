@@ -13,6 +13,7 @@ import RegisterPage from './screens/Register';
 import imgt from '../../assets/image/h3.png';
 import InvitationMaker from './screens/Invitationmaker';
 import Setting from './screens/setting';
+import ImageEditor from './screens/ImageEditor';
 
 export default function App() {
   const [imgsSelect, setImgsSelect] = useState([]);
@@ -63,7 +64,7 @@ export default function App() {
           <Router>
             <Routes>
               {isAvaliable ? (
-                <Route path="/" element={<Home />} />
+                <Route path="/" element={<ImageEditor />} />
               ) : (
                 <Route path="/" element={<RegisterPage />} />
               )}

@@ -21,7 +21,7 @@ import {
 } from 'child_process';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-import { readFile, mkdir, access, constants } from 'fs/promises';
+import { readFile, mkdir, access, constants, writeFile } from 'fs/promises';
 import firestore from '../firebase';
 const Store = require('electron-store');
 const { download } = require('electron-dl');
@@ -360,7 +360,7 @@ ipcMain.on('generateBeauty', (event, { arg }) => {
         } else if (message.startsWith('PAPER:')) {
           const path = message.substring(6);
           ListenPaperFromPython(path);
-        }else if (message.startsWith("PDF:")){
+        } else if (message.startsWith('PDF:')) {
           const path = message.substring(4);
           ListenPDFFromPython(path);
         }
@@ -379,63 +379,59 @@ ipcMain.on('BSave', (event, { arg }) => {
   }
 });
 
-ipcMain.handle('BSaveToFolder',async() => {
-  return new Promise((reslove,reject)=>{
+ipcMain.handle('BSaveToFolder', async () => {
+  return new Promise((reslove, reject) => {
     dialog
-    .showOpenDialog({
-      title: 'Select Folder To Save',
-      defaultPath: '~/Documents/Pascal/Paper',
-      buttonLabel: 'Select & Save Papers',
-      properties: ['openDirectory'],
-    })
-    .then((result) => {
-      if (!result.canceled) {
-        const folderPath = result.filePaths[0];
-        reslove(folderPath);
-        // Do something with the selected folder path
-        console.log('Selected folder:', folderPath);
+      .showOpenDialog({
+        title: 'Select Folder To Save',
+        defaultPath: '~/Documents/Pascal/Paper',
+        buttonLabel: 'Select & Save Papers',
+        properties: ['openDirectory'],
+      })
+      .then((result) => {
+        if (!result.canceled) {
+          const folderPath = result.filePaths[0];
+          reslove(folderPath);
+          // Do something with the selected folder path
+          console.log('Selected folder:', folderPath);
 
-        if (connection) {
-          connection?.send('start_layout_di:' + folderPath);
+          if (connection) {
+            connection?.send('start_layout_di:' + folderPath);
+          }
         }
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      reject(err);
-    });
-  })
-
+      })
+      .catch((err) => {
+        console.error(err);
+        reject(err);
+      });
+  });
 });
 
-ipcMain.handle('BSaveToPDF', async() => {
-  return new Promise((resolve,reject)=>{
-    
-  dialog
-    .showSaveDialog({
-      title: 'Save To PDF',
-      filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
-      defaultPath:'*/BeautyPhoto.pdf',
-     
-    })
-    .then((result) => {
-      const filePath = result.filePath;
-      if (filePath) {
-        resolve(filePath);
-        // Do something with the selected file path
+ipcMain.handle('BSaveToPDF', async () => {
+  return new Promise((resolve, reject) => {
+    dialog
+      .showSaveDialog({
+        title: 'Save To PDF',
+        filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
+        defaultPath: '*/BeautyPhoto.pdf',
+      })
+      .then((result) => {
+        const filePath = result.filePath;
+        if (filePath) {
+          resolve(filePath);
+          // Do something with the selected file path
 
-        console.log('Selected file:', filePath);
-        if (connection) {
-          connection?.send('start_layout_di_pdf:' + filePath);
+          console.log('Selected file:', filePath);
+          if (connection) {
+            connection?.send('start_layout_di_pdf:' + filePath);
+          }
         }
-      }
-    })
-    .catch((err) => {
-      reject(err)
-      console.log('Error:', err);
-    });
-
-  })
+      })
+      .catch((err) => {
+        reject(err);
+        console.log('Error:', err);
+      });
+  });
 });
 
 ipcMain.on('SMTS', (event, { msg }) => {
@@ -604,15 +600,15 @@ async function folderWatchingandCreating() {
   }
 }
 
-ipcMain.handle('register_id', async() => {
+ipcMain.handle('register_id', async () => {
   let key = await store.get('my_key_id');
-  console.log(key)
+  console.log(key);
   return key;
 });
 
 ipcMain.handle('delete_register_id', (event) => {
   store.delete('my_key_id');
-   store.delete('last_avaliable')
+  store.delete('last_avaliable');
 });
 
 ipcMain.handle('create_acc', (event, phoneno) => {
@@ -700,6 +696,38 @@ ipcMain.handle('checkmodels', async (event) => {
   return isfile;
 });
 
+ipcMain.handle('save-image', (event, args) => {
+  const savePath = path.join(documentsPath + '/Pascal/img', 's2.png');
+
+  let imageData = args[0];
+  
+  // const CaptureWindow = new BrowserWindow({
+  //   show:true,
+
+  // });
+
+  console.log(args[0])
+
+  // CaptureWindow.loadURL(`data:text/html,<html><body>
+  
+  // <img src="${imageData}" style="filter:${args[1]}"/></body></html>`);
+
+  
+
+  // // CaptureWindow.loadURL(`data:text/html,
+  // // <html>
+  // // <body>
+  // // <h1>Something</h1>
+  // // </body>
+  // // </html>`)
+
+  // CaptureWindow.on('ready-to-show', () => {
+  //   CaptureWindow.show();
+  // });
+ 
+  //console.log(args[0], args[1], 'Saving Image');
+});
+
 function ListenImageFromPython(path: string) {
   const file = path;
   const mimeType = `image/${file.split('.').pop()}`;
@@ -719,7 +747,7 @@ function ListenPaperFromPython(path: string) {
   mainWindow?.webContents.send('paperUpdated', file);
 }
 
-function ListenPDFFromPython(path:string){
+function ListenPDFFromPython(path: string) {
   const file = path;
-  mainWindow?.webContents.send('pdfUpdated',file)
+  mainWindow?.webContents.send('pdfUpdated', file);
 }
