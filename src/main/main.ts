@@ -697,35 +697,40 @@ ipcMain.handle('checkmodels', async (event) => {
 });
 
 ipcMain.handle('save-image', (event, args) => {
-  const savePath = path.join(documentsPath + '/Pascal/img', 's2.png');
+  const savePath = args[3];
+  const imageData = args[0];
 
-  let imageData = args[0];
-  
-  // const CaptureWindow = new BrowserWindow({
-  //   show:true,
+  const CaptureWindow = new BrowserWindow({
+    show: false,
+    webPreferences: {
+      sandbox: false,
+      enableRemoteModule: true,
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+    width: args[2][0],
+    height: args[2][1]+25, // add 25px because it fail 25
+  });
 
-  // });
+  CaptureWindow.loadURL(`data:text/html,<html><body style="padding:0px;margin:0px">
+  <img id="image" src="${imageData}" style="filter:${args[1]}"/>
+</body></html>`);
 
-  console.log(args[0])
+  CaptureWindow.on('ready-to-show', () => {
+    CaptureWindow.webContents.capturePage().then((image) => {
+      const buffer = image.toPNG();
 
-  // CaptureWindow.loadURL(`data:text/html,<html><body>
-  
-  // <img src="${imageData}" style="filter:${args[1]}"/></body></html>`);
+      writeFile(savePath, buffer, (error) => {
+        if (error) {
+          console.error('Failed to save image:', error);
+        } else {
+          console.log('Image saved successfully:', savePath);
+        }
 
-  
-
-  // // CaptureWindow.loadURL(`data:text/html,
-  // // <html>
-  // // <body>
-  // // <h1>Something</h1>
-  // // </body>
-  // // </html>`)
-
-  // CaptureWindow.on('ready-to-show', () => {
-  //   CaptureWindow.show();
-  // });
- 
-  //console.log(args[0], args[1], 'Saving Image');
+        CaptureWindow.close();
+      });
+    });
+  });
 });
 
 function ListenImageFromPython(path: string) {
