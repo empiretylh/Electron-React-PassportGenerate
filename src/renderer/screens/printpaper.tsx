@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ImageData, PaperData, PaperSize } from 'renderer/context/context';
 import { nativeImage } from 'electron';
 import { Folder, House, Printer } from 'react-bootstrap-icons';
+
 const PrintPaper = () => {
   const { imgcount } = useParams();
 
@@ -22,6 +23,20 @@ const PrintPaper = () => {
   const [paperdata, setPaperData] = useState([]);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // window.electron.ipcRenderer.invoke('imageUpdated');
+    setPaperList([]);
+
+    window.electron.ipcRenderer.on('paperUpdated', (filename) => {
+      console.log(filename);
+      setPaperList((prevList) => [...prevList, filename]);
+    });
+
+    return () => {
+      window.electron.ipcRenderer.removeListener('paperUpdated');
+    };
+  }, []);
 
   const LoadImg = async () => {
     const result = await window.electron.ipcRenderer.invoke(
@@ -80,7 +95,7 @@ const PrintPaper = () => {
           }}
         >
           <Button style={{ padding: 10, width: 180 }} onClick={BacktoHome}>
-          <House size={20}/>{' '}  Back to Home
+            <House size={20} /> Back to Home
           </Button>
         </Col>
         <Col
@@ -99,7 +114,11 @@ const PrintPaper = () => {
             justifyContent: 'flex-end',
           }}
         >
-          <Button variant="primary" onClick={OpenLocation} style={{ margin: 5 }}>
+          <Button
+            variant="primary"
+            onClick={OpenLocation}
+            style={{ margin: 5 }}
+          >
             <Folder size={25} color={'#fff'} style={{ marginRight: 5 }} />
             Show in Folder
           </Button>
@@ -131,13 +150,30 @@ const PrintPaper = () => {
               justifyContent: 'center',
             }}
           >
-            {paperdata.map((paper, index) => (
-              <img
-                src={paper}
-                key={index}
-                style={{ width: '79%', marginTop: 5, marginBottom: 5 }}
-              />
-            ))}
+            {paperdata.length > 0 ? (
+              paperdata.map((paper, index) => (
+                <img
+                  src={paper}
+                  key={index}
+                  style={{ width: '79%', marginTop: 5, marginBottom: 5 }}
+                />
+              ))
+            ) : (
+              <div
+                style={{
+                  padding: 10,
+                  marginTop:10,
+                  backgroundColor: '#fbfbfb',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection:'column',
+                }}
+              >
+                <h4>Arranging Images</h4>
+                <img src={loading} style={{ width: 120 }} />
+              </div>
+            )}
           </Row>
         </Col>
       </Row>

@@ -284,7 +284,7 @@ function SendMessage(arg) {
   connection?.send('PaperSize:' + arg[3]);
   connection?.send('Bw:' + arg[4]);
   connection?.send('BgColor:' + arg[5]);
-  connection?.send('Mode:pasport');
+  connection?.send('Mode:passport');
   connection?.send('FMode:false');
   connection?.send('start_processing');
 }
@@ -560,41 +560,16 @@ ipcMain.handle('imageUpdated', async () => {
   return result;
 });
 
+
+ipcMain.on('PSave', (event, { arg }) => {
+  if (connection) {
+    connection?.send('start_layout');
+  }
+});
+
 async function folderWatchingandCreating() {
-  let oldfilename;
-
-  let timeout: string | number | NodeJS.Timeout | undefined;
-
-  const timeoutDuration = 1500;
-
   try {
     await CreateFolders();
-
-    // watch(folderPath, (eventType, filename) => {
-    //   console.log(eventType, filename, 'File Name');
-    //   if (eventType === 'change') {
-    //     if (filename) {
-    //       oldfilename = filename;
-
-    //       clearTimeout(timeout);
-
-    //       timeout = setTimeout(() => {
-    //         const file = folderPath + filename;
-    //         const mimeType = `image/${file.split('.').pop()}`;
-    //         readFile(file)
-    //           .then((data) => {
-    //             const fileData = `data:${mimeType};base64,${data.toString(
-    //               'base64'
-    //             )}`;
-    //             mainWindow?.webContents.send('imageUpdated', { file, fileData });
-    //           })
-    //           .catch((error) => {
-    //             // Handle error
-    //           });
-    //       }, timeoutDuration);
-    //     }
-    //   }
-    // });
   } catch (e) {
     console.log('errors', e);
   }

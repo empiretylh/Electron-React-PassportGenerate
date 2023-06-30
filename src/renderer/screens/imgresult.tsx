@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
-import { Container, Row, Col, Button, Card } from 'react-bootstrap';
+import { Container, Row, Col, Button, Card, Modal } from 'react-bootstrap';
 import loading from '../../../assets/image/loading.gif';
-import Person from '../../../assets/image/img2.jpg';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ImageData, PaperData } from 'renderer/context/context';
 import {
@@ -9,7 +8,11 @@ import {
   Folder,
   HouseExclamation,
   HouseFill,
+  Pencil,
+  Save,
+  Save2,
 } from 'react-bootstrap-icons';
+import ImageEditor from './ImageEditor';
 
 const ImageResult = () => {
   const { imgcount } = useParams();
@@ -22,7 +25,6 @@ const ImageResult = () => {
   const { paperList, setPaperList } = useContext(PaperData);
 
   const [isGenerate, setIsGenerate] = useState(true);
-  
 
   const ComputeGeneratingImage = useMemo(() => {
     let image = imgsSelect[0];
@@ -34,8 +36,6 @@ const ImageResult = () => {
     });
 
     image = imgsSelect[indexc - 1];
-
-   
 
     if (imgcount == imageList.length) {
       setImgsSelect([]);
@@ -49,9 +49,7 @@ const ImageResult = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
- 
-    window.electron.ipcRenderer.on('imageUpdated', ({file,fileData}) => {
-      
+    window.electron.ipcRenderer.on('imageUpdated', ({ file, fileData }) => {
       setImageList((prevList) => [...prevList, fileData]);
       setImgURL((prev) => [...prev, file]);
     });
@@ -60,30 +58,96 @@ const ImageResult = () => {
       window.electron.ipcRenderer.removeListener('imageUpdated');
     };
   }, []);
-  useEffect(() => {
-    // window.electron.ipcRenderer.invoke('imageUpdated');
-    setPaperList([]);
-
-    window.electron.ipcRenderer.on('paperUpdated', (filename) => {
-      console.log(filename);
-      setPaperList((prevList) => [...prevList, filename]);
-    });
-
-    return () => {
-      window.electron.ipcRenderer.removeListener('paperUpdated');
-    };
-  }, []);
-
+  
   const BacktoHome = () => {
     navigate('/passportmaker');
   };
 
-  const gotoPrint = () => {
+  const gotoPrint = () => {    
+    window.electron.ipcRenderer.sendMessage('PSave', '_');
     navigate('/paper');
   };
 
   const OpenLocation = async (url) => {
     await window.electron.ipcRenderer.sendMessage('openLocation', url);
+  };
+
+  const [editShow, setEditShow] = useState(false);
+  const [imguri, setImgURI] = useState(null);
+  const [editIndex, setEditIndex] = useState(0);
+
+  const handleClose = () => {
+    setEditShow(false);
+  };
+
+  const handleEditOpen = (index) => {
+    let imguri = imgURL[index];
+    setEditIndex(index);
+    setImgURI(imguri);
+    setEditShow(true);
+  };
+
+  const [filterdata,setFilterData] =  useState({})
+
+  const handleSave = (imgindex: number) => {
+    let img = imageList[imgindex];
+  
+
+    if (img && capsize) {
+      window.electron.ipcRenderer.invoke('save-image', [
+        img, //Image Data
+        filtered,
+        capsize, //Captured Windows Size
+        imguri, //For Saving img uri
+      ]);
+      setEditShow(false);
+    }
+
+    let fdata = filterdata;
+    fdata[imgindex] = filtered;
+    setFilterData(fdata);
+
+
+    console.log(filterdata,"filter data");
+  };
+
+  const [capsize, setCapSize] = useState(null);
+
+  const [filtered, setFiltered] = useState();
+
+  const FILTERDLIST = useMemo(()=>{
+    return imageList;
+  },[filtered,imgURL,imageList])
+  const EditImageModal = () => {
+    return (
+      <Modal show={editShow} centered size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Image Editor</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <ImageEditor
+            capsize={capsize}
+            setCapSize={setCapSize}
+            imguri={imguri}
+            filtered={filtered}
+            setFiltered={setFiltered}
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              handleSave(editIndex);
+            }}
+          >
+            <Save2 /> Save
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    );
   };
 
   return (
@@ -96,6 +160,7 @@ const ImageResult = () => {
         height: '100vh',
       }}
     >
+      {EditImageModal()}
       <Row>
         <Col
           style={{
@@ -105,7 +170,7 @@ const ImageResult = () => {
             flexDirection: 'row',
           }}
         >
-          <Button style={{ padding: 10, width: 180 }} onClick={BacktoHome} >
+          <Button style={{ padding: 10, width: 180 }} onClick={BacktoHome}>
             <HouseFill /> Back to Home
           </Button>
         </Col>
@@ -150,18 +215,27 @@ const ImageResult = () => {
         <Col style={{ height: '90vh', overflowY: 'auto' }}>
           <Row>
             <h5>Generated Images</h5>
-            {imageList.length > 0 ? (
-              imageList.map((file, index) => (
+            {FILTERDLIST.length > 0 ? (
+              FILTERDLIST.map((file, index) => (
                 <Col key={index} xs={6} md={3} lg={2}>
                   <Card style={{ marginBottom: '1rem', alignItems: 'center' }}>
-                    <Card.Img variant="top" src={file} />
+                    <Card.Img variant="top" src={file}  style={{
+                      filter: filterdata[index] ? filterdata[index] : `brightness(${1}) contrast(${1}) saturate(${1})`
+                    }}/>
                     <Card.Body style={{ padding: 5 }}>
                       <Button
                         variant="primary"
                         style={{ fontSize: 13, padding: 5 }}
-                        onClick={()=>OpenLocation(imgURL[index])}
+                        onClick={() => OpenLocation(imgURL[index])}
                       >
                         <Folder /> Show in Folder
+                      </Button>
+                      <Button
+                        variant="primary"
+                        style={{ fontSize: 13, padding: 5 }}
+                        onClick={() => handleEditOpen(index)}
+                      >
+                        <Pencil /> Edit Image
                       </Button>
                     </Card.Body>
                   </Card>

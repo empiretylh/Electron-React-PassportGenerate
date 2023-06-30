@@ -64,7 +64,7 @@ export default function App() {
           <Router>
             <Routes>
               {isAvaliable ? (
-                <Route path="/" element={<ImageEditor />} />
+                <Route path="/" element={<Home />} />
               ) : (
                 <Route path="/" element={<RegisterPage />} />
               )}

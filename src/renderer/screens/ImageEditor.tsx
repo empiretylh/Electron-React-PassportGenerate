@@ -1,10 +1,8 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import '../style/ImageEditor.css';
-import img2 from '../../../assets/image/img2.jpg';
-import { Button } from 'react-bootstrap';
-import html2canvas from 'html2canvas';
+import { Button,Container,Row,Col } from 'react-bootstrap';
 
-const ImageEditor = () => {
+const ImageEditor = ({imguri,capsize,setCapSize,filtered,setFiltered}) => {
   const [saturation, setSaturation] = useState(1);
   const [brightness, setBrightness] = useState(1);
   const [contrast, setContrast] = useState(1);
@@ -31,43 +29,25 @@ const ImageEditor = () => {
   };
 
   const [img, setImg] = useState(null);
-  const [capsize, setCapSize] = useState(null);
 
-  let imguri = '/home/thura/Documents/Pascal/img/photo_2023-06-10_09-25-15.jpg';
+useEffect(()=>{
+  console.log('Getting image')
+  const getImage = async ()=>{
+    const result = await window.electron.ipcRenderer.invoke('uritoimg',[
+      imguri
+    ])
 
-  const IMG = useMemo(async () => {
-    console.log('Getting Image......');
-    const result = await window.electron.ipcRenderer.invoke('uritoimg', [
-      imguri,
-    ]);
-    setImg(result[0]);
-  }, []);
+    setImg(result[0])
+  }
 
-  const SaveImage = () => {
-    console.log(img,capsize,saturation,brightness,contrast)
-    console.log(
-      img && capsize 
-    );
-    if (img && capsize) {
-      window.electron.ipcRenderer.invoke('save-image', [
-        img, //Image Data
-        `brightness(${brightness}) contrast(${contrast}) saturate(${saturation})`, //Image Filterd
-        capsize, //Captured Windows Size
-        imguri, //For Saving img uri
-      ]);
-    }
-  };
+  getImage();
+},[imguri]);
 
-  useEffect(() => {
-    clearTimeout(SavingTime.current);
-    SavingTime.current = setTimeout(()=>{
+useEffect(()=>{
+  setFiltered(`brightness(${brightness}) contrast(${contrast}) saturate(${saturation})`)
+},[saturation,brightness,contrast])
 
-    SaveImage();
-    },4000) // wait 4 seconds to save image
-    return ()=>{
-      clearTimeout(SavingTime.current)
-    }
-  }, [saturation, brightness, contrast]);
+
 
   useEffect(() => {
     if (FilteredImage.current && img) {
@@ -80,6 +60,9 @@ const ImageEditor = () => {
 
   return (
     <div className="image-editor">
+      <Container>
+        <Row>
+          <Col>
       <div className="controls">
         <label htmlFor="saturation">Saturation</label>
         <input
@@ -114,9 +97,10 @@ const ImageEditor = () => {
           onChange={handleContrastChange}
         />
       </div>
-      <Button onClick={ResetAll}>Reset All</Button>
-      <Button onClick={SaveImage}>Save</Button>
-      <div>
+      <Button onClick={ResetAll} variant="secondary">Reset All</Button>
+           </Col>
+      <Col>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'center'}}>
         <img
           ref={FilteredImage}
           src={img}
@@ -128,7 +112,9 @@ const ImageEditor = () => {
           }}
         />
       </div>
-      {/* Add your image display component here */}
+      </Col>
+      </Row>
+      </Container>
     </div>
   );
 };
