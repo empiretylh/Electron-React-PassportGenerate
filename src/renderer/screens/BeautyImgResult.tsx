@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useContext, useMemo, useRef } from 'react';
-import {
-  Container,
-  Row,
-  Col,
-  Button,
-  Card,
-  RangeSlider,
-} from 'react-bootstrap';
+import { Container, Row, Col, Button, Card, Modal } from 'react-bootstrap';
 import loading from '../../../assets/image/loading.gif';
 import Person from '../../../assets/image/img2.jpg';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -22,6 +15,7 @@ import {
   HouseExclamation,
   HouseFill,
   Images,
+  PencilSquare,
   Printer,
   Save2,
 } from 'react-bootstrap-icons';
@@ -29,6 +23,7 @@ import {
 import icon from '../../../assets/image/icon.png';
 import Paper from 'renderer/extra/Paper';
 import html2canvas from 'html2canvas';
+import ImageEditor from './ImageEditor';
 
 function PhotoCount(
   paperWidth: any,
@@ -71,6 +66,8 @@ const ImageResult = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const [loadingStatus, setLoadingStatus] = useState('Printing Images');
+
+  const [selectedImages, setSelectedImages] = useState([]);
 
   const ImgContainerRef = useRef(null);
 
@@ -173,37 +170,11 @@ const ImageResult = () => {
     };
   }, []);
 
-  const MapedImage = useMemo(() => {
-    const fitImageCount = PhotoCount(
-      paperSize?.split(',')[0],
-      paperSize?.split(',')[1],
-      imagesize?.split(',')[0],
-      imagesize?.split(',')[1]
-    );
-
-    let count = 0;
-
-    let MapedList = {};
-
-    imageList.map((img, index) => {
-      if (index % fitImageCount === 0) {
-        count += 1;
-      }
-
-      if (!MapedList[count]) {
-        MapedList[count] = [img];
-      } else {
-        MapedList[count].push(img);
-      }
-    });
-
-    console.log('Mapped List', Object.values(MapedList));
-    return Object.values(MapedList);
-  }, [imageList, paperSize, imagesize]);
-
   const [position, setPosition] = useState(0);
 
   const OnRightArrowClick = () => {
+    setSelectedImages([]);
+    setFilterData([])
     console.log(position);
     if (MapedImage) {
       if (position < MapedImage.length - 1) setPosition((prev) => prev + 1);
@@ -211,6 +182,8 @@ const ImageResult = () => {
   };
 
   const OnLeftArrowClick = () => {
+    setSelectedImages([]);
+    setFilterData([])
     console.log(position, MapedImage.length - 1);
     if (MapedImage) {
       let mil = MapedImage.length - 1;
@@ -258,6 +231,122 @@ const ImageResult = () => {
     navigate('/beautymaker');
   };
 
+  //Image Editing....................
+  const [editShow, setEditShow] = useState(false);
+  const [imguri, setImgURI] = useState(null);
+  const [editIndex, setEditIndex] = useState(0);
+
+  const handleClose = () => {
+    setEditShow(false);
+  };
+
+  const handleEditOpen = (index) => {
+    let imguri = MapedImage[position][selectedImages[index]];
+    console.log(selectedImages[index])
+    setEditIndex(selectedImages[index]);
+    setImgURI(imguri);
+    setEditShow(true);
+  };
+
+  const [filterdata, setFilterData] = useState({});
+
+  const handleSave = (imgindex: number) => {
+    // let img = MapedImage[imgindex];
+
+    const getImageAndSave = async (imguri: string) => {
+      const result = await window.electron.ipcRenderer.invoke('uritoimg', [
+        imguri,
+      ]);
+
+      // setImgData((prev) => [...img_data, result[0]]);
+      console.log(result[0])
+      if (result && capsize) {
+        window.electron.ipcRenderer.invoke('save-image', [
+          result[0], //Image Data
+          filtered,
+          capsize, //Captured Windows Size
+          imguri, //For Saving img uri
+        ]);
+        setEditShow(false);
+      }
+      console.log(imgindex,"IMage index")
+      let fdata = filterdata;
+      fdata[imgindex] = filtered;
+      setFilterData(fdata);
+      setReload(true);
+      setSelectedImages([])
+      console.log(fdata, 'filter data');
+    };
+
+    getImageAndSave(imguri);
+  };
+
+  const [capsize, setCapSize] = useState(null);
+
+  const [filtered, setFiltered] = useState();
+  const [reload,setReload] = useState(true);
+
+  const MapedImage = useMemo(() => {
+    const fitImageCount = PhotoCount(
+      paperSize?.split(',')[0],
+      paperSize?.split(',')[1],
+      imagesize?.split(',')[0],
+      imagesize?.split(',')[1]
+    );
+
+    let count = 0;
+
+    let MapedList = {};
+
+    imgURL.map((img, index) => {
+      if (index % fitImageCount === 0) {
+        count += 1;
+      }
+
+      if (!MapedList[count]) {
+        MapedList[count] = [img];
+      } else {
+        MapedList[count].push(img);
+      }
+    });
+
+    console.log('Mapped List', Object.values(MapedList));
+    return Object.values(MapedList);
+  }, [imageList, paperSize, imagesize]);
+
+
+  const EditImageModal = () => {
+    return (
+      <Modal show={editShow} centered size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Image Editor</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <ImageEditor
+            capsize={capsize}
+            setCapSize={setCapSize}
+            imguri={imguri}
+            filtered={filtered}
+            setFiltered={setFiltered}
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              handleSave(editIndex);
+            }}
+          >
+            <Save2 /> Save
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    );
+  };
+
   return (
     <Container
       fluid
@@ -268,6 +357,7 @@ const ImageResult = () => {
         width: '99.7vw',
       }}
     >
+      {EditImageModal()}
       <Col
         style={{
           display: 'flex',
@@ -308,24 +398,7 @@ const ImageResult = () => {
           height: '87vh',
         }}
       >
-        <Col lg={2}>
-          <Button style={{ width: '100%', padding: 3 }} onClick={PrintPages}>
-            <Printer size={25} /> Print
-          </Button>
-          <Button
-            style={{ width: '100%', padding: 3, marginTop: 8 }}
-            onClick={handleSaveImageToPDF}
-          >
-            <Save2 size={25} /> Export PDF
-          </Button>
-          <Button
-            style={{ width: '100%', padding: 3, marginTop: 8 }}
-            onClick={saveImagesToFolder}
-          >
-            <Folder2Open size={25} />{' '}
-            {MapedImage.length > 1 ? 'Save To Folder' : 'Save To Folder'}
-          </Button>
-        </Col>
+       
         <Col
           lg={1}
           md={1}
@@ -353,13 +426,17 @@ const ImageResult = () => {
             height: '100%',
           }}
         >
-          {MapedImage.length > 0 && (
+          {reload && MapedImage.length > 0 && (
             <Paper
               paperSize={paperSize}
               imagesize={imagesize}
               dpi={DPI}
               images={MapedImage[position]}
               ref={PaperRef}
+              selectedImages={selectedImages}
+              setSelectedImages={setSelectedImages}
+              filter={filterdata}
+              
             />
           )}
 
@@ -394,6 +471,34 @@ const ImageResult = () => {
             )}
           </div>
         </Col>
+
+        <Col lg={2}>
+          <Button style={{ width: '100%', padding: 3 }} onClick={PrintPages}>
+            <Printer size={25} /> Print
+          </Button>
+          <Button
+            style={{ width: '100%', padding: 3, marginTop: 8 }}
+            onClick={handleSaveImageToPDF}
+          >
+            <Save2 size={25} /> Export PDF
+          </Button>
+          <Button
+            style={{ width: '100%', padding: 3, marginTop: 8 }}
+            onClick={saveImagesToFolder}
+          >
+            <Folder2Open size={25} /> Save To Folder
+          </Button>
+          {selectedImages.length == 1 ? (
+            <Button
+              variant="warning"
+              style={{ width: '100%', padding: 3, marginTop: 8 }}
+              onClick={() => handleEditOpen(0)}
+            >
+              <PencilSquare size={25} /> Edit Image
+            </Button>
+          ) : null}
+        </Col>
+
       </Row>
 
       {isProcessing && (

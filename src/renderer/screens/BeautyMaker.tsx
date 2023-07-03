@@ -37,12 +37,12 @@ const BeautyMaker = () => {
   const [imgsize, setImgsize] = useState('3.9,5.7');
   const [imageWidth, setImageWidth] = useState('3.9');
   const [imageHeight, setImageHeight] = useState('5.7');
-  const [quantity, setQuantity] = useState('6');
-  const [color, setColor] = useState('0099ff');
-  const [bw, setBw] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [status, setStatus] = useState('Uploading...');
-  const [finish, setFinish] = useState(false);
+  // const [quantity, setQuantity] = useState('6');
+  // const [color, setColor] = useState('0099ff');
+  // const [bw, setBw] = useState(false);
+  // const [uploading, setUploading] = useState(false);
+  // const [status, setStatus] = useState('Uploading...');
+  // const [finish, setFinish] = useState(false);
 
   const [selectedMode, setSelectedMode] = useState('false');
 

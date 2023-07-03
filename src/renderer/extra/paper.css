@@ -1,0 +1,13 @@
+.beautyIMG {
+  /* border: solid black 2px; */
+}
+
+.beautyIMG:hover {
+  border: solid rgb(14, 36, 235) 2px;
+}
+
+.selected {
+  padding: 10px;
+  background-color: rgb(14, 36, 235);
+  box-shadow: inset 0 0 0 0px #000;
+}

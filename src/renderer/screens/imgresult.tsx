@@ -71,7 +71,7 @@ const ImageResult = () => {
   const OpenLocation = async (url) => {
     await window.electron.ipcRenderer.sendMessage('openLocation', url);
   };
-
+  //Image Editing....................
   const [editShow, setEditShow] = useState(false);
   const [imguri, setImgURI] = useState(null);
   const [editIndex, setEditIndex] = useState(0);
@@ -118,10 +118,12 @@ const ImageResult = () => {
   const FILTERDLIST = useMemo(()=>{
     return imageList;
   },[filtered,imgURL,imageList])
+
+
   const EditImageModal = () => {
     return (
       <Modal show={editShow} centered size="lg">
-        <Modal.Header closeButton>
+        <Modal.Header closeButton onHide={handleClose}>
           <Modal.Title>Image Editor</Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -231,11 +233,11 @@ const ImageResult = () => {
                         <Folder /> Show in Folder
                       </Button>
                       <Button
-                        variant="primary"
-                        style={{ fontSize: 13, padding: 5 }}
+                        variant="warning"
+                        style={{ fontSize: 13, padding: 5,marginLeft:5 }}
                         onClick={() => handleEditOpen(index)}
                       >
-                        <Pencil /> Edit Image
+                        <Pencil /> Edit
                       </Button>
                     </Card.Body>
                   </Card>

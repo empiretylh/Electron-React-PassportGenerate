@@ -1,7 +1,15 @@
 import imgt from '../../../assets/image/h3.png';
 import html2canvas from 'html2canvas';
-import React, { useImperativeHandle, forwardRef, useRef } from 'react';
-
+import React, {
+  useImperativeHandle,
+  forwardRef,
+  useRef,
+  useState,
+  useMemo,
+  useEffect,
+} from 'react';
+import { CheckCircle } from 'react-bootstrap-icons';
+import './paper.css';
 interface PaperProps {
   paperSize: string;
   dpi: number;
@@ -11,7 +19,10 @@ interface PaperProps {
   images: never[];
   ilandscape: boolean;
   plandscape: boolean;
+  selectedImages: never[];
+  setSelectedImages: any;
   ref: any;
+  filter: never[];
 }
 
 function swapValue(value1: any, value2: any): any[] {
@@ -53,6 +64,9 @@ const Paper = forwardRef((props, ref) => {
     images,
     ilandscape = false,
     plandscape = true,
+    selectedImages,
+    setSelectedImages,
+    filter,
   }: PaperProps = props;
 
   let [pw, ph]: string[] = paperSize.split(',');
@@ -64,12 +78,10 @@ const Paper = forwardRef((props, ref) => {
   console.log(ImageWidth, ImageHeight);
 
   useImperativeHandle(ref, () => ({
-    exportImage: exportImage
+    exportImage: exportImage,
   }));
 
-  const exportImage = () => {
-   
-  };
+  const exportImage = () => {};
 
   margin = (dpi / 300) * parseFloat(margin);
 
@@ -84,19 +96,55 @@ const Paper = forwardRef((props, ref) => {
     [imageWidth, imageHeight] = swapValue(imageWidth, imageHeight);
   }
 
+  const [img_data, setImgData] = useState([]);
+
+  useEffect(() => {
+    const getImage = async (imguri: string) => {
+      const result = await window.electron.ipcRenderer.invoke('uritoimg', [
+        imguri,
+      ]);
+      console.log(result);
+      if (result) {
+        setImgData((prev) => [...prev, result[0]]);
+      }
+    };
+
+    console.log(images.length, 'Image Length');
+    setImgData([]);
+    images.map((img, index) => {
+      console.log('Getting image', img);
+      getImage(img);
+    });
+  }, [images,filter]);
+
+  console.log("Filter,,,,,,,",filter)
+
   // Generate dynamic image elements
-  const imageElements = images.map((img, index) => (
-    <img
-      key={index}
-      src={img}
-      alt={`Image ${index + 1}`}
-      style={{
-        width: `${imageWidth}px`,
-        height: `${imageHeight}px`,
-        margin: margin,
-      }}
-    />
-  ));
+  const imageElements = useMemo(() => {
+    console.log(img_data.length,images.length)
+    if (img_data.length == images.length) {
+      return img_data.map((img, index) => (
+        <img
+          key={index}
+          src={img}
+          alt={`Image ${index + 1}`}
+          style={{
+            width: `${imageWidth}px`,
+            height: `${imageHeight}px`,
+            margin: margin,
+            filter: filter[index]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+          }}
+          className={
+            selectedImages.includes(index) ? 'beautyIMG selected' : 'beautyIMG'
+          }
+          onClick={() => {
+            console.log(selectedImages)
+            setSelectedImages([index]);
+          }}
+        />
+      ));
+    }
+  }, [img_data, images,selectedImages]);
 
   return (
     <div
@@ -115,7 +163,7 @@ const Paper = forwardRef((props, ref) => {
         margin: 100,
       }}
     >
-      {imageElements}
+      {img_data.length > 0 ? imageElements : null}
     </div>
   );
 });
