@@ -1,4 +1,5 @@
 node_modules
 Depend
-release
+release/app/dist
+release/build
 .erb
