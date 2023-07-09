@@ -71,6 +71,8 @@ const ImageResult = () => {
 
   const ImgContainerRef = useRef(null);
 
+  const ImgEditorRef = useRef(null);
+
   const PaperRef = useRef(null);
   let DefaultDPI = 60;
   const [DPI, setDPI] = useState(DefaultDPI);
@@ -205,6 +207,9 @@ const ImageResult = () => {
 
   useEffect(() => {
     if (paperList.length >= MapedImage.length) {
+      if(isProcessing && paperList.length > 0){
+         window.electron.ipcRenderer.sendMessage('openLocation',paperList[0])
+      }
       setIsProcessing(false);
       setIsPrint(false);
       // window.electron.ipcRenderer.invoke('imageUpdated');
@@ -254,21 +259,24 @@ const ImageResult = () => {
     // let img = MapedImage[imgindex];
 
     const getImageAndSave = async (imguri: string) => {
-      const result = await window.electron.ipcRenderer.invoke('uritoimg', [
-        imguri,
-      ]);
+      // const result = await window.electron.ipcRenderer.invoke('uritoimg', [
+      //   imguri,
+      // ]);
 
-      // setImgData((prev) => [...img_data, result[0]]);
-      console.log(result[0])
-      if (result && capsize) {
-        window.electron.ipcRenderer.invoke('save-image', [
-          result[0], //Image Data
-          filtered,
-          capsize, //Captured Windows Size
-          imguri, //For Saving img uri
-        ]);
-        setEditShow(false);
-      }
+      // // setImgData((prev) => [...img_data, result[0]]);
+      // console.log(result[0])
+      // if (result && capsize) {
+      //   window.electron.ipcRenderer.invoke('save-image', [
+      //     result[0], //Image Data
+      //     filtered,
+      //     capsize, //Captured Windows Size
+      //     imguri, //For Saving img uri
+      //   ]);
+      //   setEditShow(false);
+      // }
+
+      ImgEditorRef.current.save();
+
       console.log(imgindex,"IMage index")
       let fdata = filterdata;
       fdata[imgindex] = filtered;
@@ -323,6 +331,7 @@ const ImageResult = () => {
         </Modal.Header>
         <Modal.Body>
           <ImageEditor
+          ref={ImgEditorRef}
             capsize={capsize}
             setCapSize={setCapSize}
             imguri={imguri}

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, forwardRef,useRef, useMemo, useEffect, useCallback, useImperativeHandle } from 'react';
 import '../style/ImageEditor.css';
 import { Button, Container, Row, Col } from 'react-bootstrap';
 import {
@@ -8,6 +8,7 @@ import {
   Trash2,
   XDiamondFill,
 } from 'react-bootstrap-icons';
+import { toPng } from 'html-to-image';
 
 const ImageEditor = ({
   imguri,
@@ -15,10 +16,14 @@ const ImageEditor = ({
   setCapSize,
   filtered,
   setFiltered,
-}) => {
+  afterDone,
+},ref)=> {
   const [saturation, setSaturation] = useState(1);
   const [brightness, setBrightness] = useState(1);
   const [contrast, setContrast] = useState(1);
+
+  const [width,setWidth] = useState(500);
+  const [height,setHeight] = useState(320);
 
   const FilteredImage = useRef<HTMLDivElement>(null);
   const SavingTime = useRef(null);
@@ -68,8 +73,47 @@ const ImageEditor = ({
       console.log('Image width:', naturalWidth);
       console.log('Image height:', naturalHeight);
       setCapSize([naturalWidth, naturalHeight]);
+
     }
   }, [img, setImg]);
+
+
+  const onSaveButtonClick = useCallback(()=>{
+    if(capsize)
+      setWidth(capsize[0]);
+      setHeight(capsize[1]);
+
+  
+    if(FilteredImage.current === null){
+      return false;
+    }
+
+    FilteredImage.current.style.width = `${capsize[0]}px`;
+    FilteredImage.current.style.height = `${capsize[1]}px`;
+
+    console.log("Converting to PNG")
+
+  
+
+    toPng(FilteredImage.current,{cacheBust:true}).then((dataUrl)=>{
+      setWidth(500);
+      setHeight(320);
+      console.log("Data URL COmplete",dataUrl)
+      window.electron.ipcRenderer.invoke('save-image',[dataUrl,imguri]);
+    
+      console.log("LINK CLICKED")
+    }).catch((err)=>{
+      console.log(err)
+    })
+  },[FilteredImage,capsize])
+
+  useImperativeHandle(ref,()=>{
+    return{
+      save(){
+        onSaveButtonClick();
+      }
+    }
+  },[capsize]);
 
   return (
     <div className="image-editor">
@@ -149,7 +193,7 @@ const ImageEditor = ({
             >
               Reset All
             </Button>
-          </Col>
+            </Col>
           <Col>
             <div
               style={{
@@ -158,16 +202,20 @@ const ImageEditor = ({
                 justifyContent: 'center',
               }}
             >
+              <div style={{overflow:'auto'}}>
               <img
                 ref={FilteredImage}
                 src={img}
                 style={{
-                  width: 500,
-                  height: 320,
+                  width: width,
+                  height: height,
                   objectFit: 'contain',
                   filter: `brightness(${brightness}) contrast(${contrast}) saturate(${saturation})`,
                 }}
               />
+             
+              
+              </div>
             </div>
           </Col>
         </Row>
@@ -176,4 +224,4 @@ const ImageEditor = ({
   );
 };
 
-export default ImageEditor;
+export default forwardRef(ImageEditor);

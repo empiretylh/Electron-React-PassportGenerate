@@ -27,6 +27,8 @@ const Store = require('electron-store');
 const { download } = require('electron-dl');
 import WebSocket from 'ws';
 import { send } from 'process';
+import * as htmlToImage from 'html-to-image';
+import { toPng } from 'html-to-image';
 
 let connection: WebSocket | null = null;
 
@@ -395,6 +397,8 @@ ipcMain.handle('BSaveToFolder', async () => {
           // Do something with the selected folder path
           console.log('Selected folder:', folderPath);
 
+      
+
           if (connection) {
             connection?.send('start_layout_di:' + folderPath);
           }
@@ -514,7 +518,9 @@ function openLocationInExplorer(url: string) {
   if (os === 'win32') {
     eurl = url.replace(/\//g, '\\');
   }
-  shell.showItemInFolder(eurl);
+  if(eurl){
+  shell.showItemInFolder(eurl)
+  }
 }
 
 ipcMain.on('openLocation', (event, url) => {
@@ -672,40 +678,67 @@ ipcMain.handle('checkmodels', async (event) => {
 });
 
 ipcMain.handle('save-image', (event, args) => {
-  const savePath = args[3];
+  const savePath = args[1];
   const imageData = args[0];
 
-  const CaptureWindow = new BrowserWindow({
-    show: false,
-    webPreferences: {
-      sandbox: false,
-      enableRemoteModule: true,
-      nodeIntegration: true,
-      contextIsolation: false,
-    },
-    width: args[2][0],
-    height: args[2][1]+25, // add 25px because it fail 25
-  });
+  const base64Data = imageData.replace(/^data:image\/png;base64,/,'');
 
-  CaptureWindow.loadURL(`data:text/html,<html><body style="padding:0px;margin:0px">
-  <img id="image" src="${imageData}" style="filter:${args[1]}"/>
-</body></html>`);
+  writeFile(savePath,base64Data,'base64');
 
-  CaptureWindow.on('ready-to-show', () => {
-    CaptureWindow.webContents.capturePage().then((image) => {
-      const buffer = image.toPNG();
 
-      writeFile(savePath, buffer, (error) => {
-        if (error) {
-          console.error('Failed to save image:', error);
-        } else {
-          console.log('Image saved successfully:', savePath);
-        }
+//   const html = `<html><body style="padding:0px;margin:0px">
+//   <img id="image" src="${imageData}" style="filter:${args[1]}"/>
+// </body></html>`;
 
-        CaptureWindow.close();
-      });
-    });
-  });
+// const container = document.createElement('div');
+// container.innerHTML = html;
+// const htmlNode = container.firstChild;
+
+// toPng(htmlNode)
+//   .then(function (dataUrl) {
+//     const base64Data = dataUrl.replace(/^data:image\/png;base64,/, '');
+//     writeFile(savePath, base64Data, 'base64');
+//     console.log('Image saved successfully!');
+//   })
+//   .catch(function (error) {
+//     console.error('Error:', error);
+//   });
+
+//   const CaptureWindow = new BrowserWindow({
+//     show: false,
+//     webPreferences: {
+//       sandbox: false,
+//       enableRemoteModule: true,
+//       nodeIntegration: true,
+//       contextIsolation: false,
+//     },
+//     width: args[2][0],
+//     height: args[2][1]+25, // add 25px because it fail 25
+//   });
+
+
+//   CaptureWindow.loadURL(`data:text/html,<html><body style="padding:0px;margin:0px">
+//   <img id="image" src="${imageData}" style="filter:${args[1]}"/>
+// </body></html>`);
+
+
+//   CaptureWindow.on('ready-to-show', () => {
+    
+
+//     // CaptureWindow. webContents.capturePage().then((image) => {
+//     //   const buffer = image.toPNG();
+
+//     //   writeFile(savePath, buffer, (error) => {
+//     //     if (error) {
+//     //       console.error('Failed to save image:', error);
+//     //     } else {
+//     //       console.log('Image saved successfully:', savePath);
+//     //     }
+
+//     //     CaptureWindow.close();
+//     //   });
+//     // });
+//   });
 });
 
 function ListenImageFromPython(path: string) {

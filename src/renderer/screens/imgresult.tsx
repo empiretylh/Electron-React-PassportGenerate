@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useMemo } from 'react';
+import React, { useState, useEffect, useContext, useRef,useMemo } from 'react';
 import { Container, Row, Col, Button, Card, Modal } from 'react-bootstrap';
 import loading from '../../../assets/image/loading.gif';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -76,6 +76,8 @@ const ImageResult = () => {
   const [imguri, setImgURI] = useState(null);
   const [editIndex, setEditIndex] = useState(0);
 
+  const imgEditorRef =  useRef(0);
+
   const handleClose = () => {
     setEditShow(false);
   };
@@ -93,14 +95,16 @@ const ImageResult = () => {
     let img = imageList[imgindex];
   
 
-    if (img && capsize) {
-      window.electron.ipcRenderer.invoke('save-image', [
-        img, //Image Data
-        filtered,
-        capsize, //Captured Windows Size
-        imguri, //For Saving img uri
-      ]);
+    if (img) {
+      // window.electron.ipcRenderer.invoke('save-image', [
+      //   img, //Image Data
+      //   filtered,
+      //   capsize, //Captured Windows Size
+      //   imguri, //For Saving img uri
+      // ]);
+      imgEditorRef.current.save();
       setEditShow(false);
+   
     }
 
     let fdata = filterdata;
@@ -133,6 +137,7 @@ const ImageResult = () => {
             imguri={imguri}
             filtered={filtered}
             setFiltered={setFiltered}
+            ref={imgEditorRef}
           />
         </Modal.Body>
         <Modal.Footer>
