@@ -183,7 +183,7 @@
     "webpack-merge": "^5.8.0"
   },
   "build": {
-    "productName": "Pascal X",
+    "productName": "Smart Crop Photo Maker",
     "appId": "com.empire.pascalx",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",

@@ -184,7 +184,7 @@ const RegisterPage = () => {
           }}
         >
           <img src={icon} style={{ width: 150, height: 150 }} />
-          <h3>Pascal X</h3>
+          <h3>Smart Crop Photo Maker</h3>
           <div
             style={{
               display: 'flex',
@@ -293,7 +293,7 @@ const RegisterPage = () => {
           }}
         >
           <img src={icon} style={{ width: 150, height: 150 }} />
-          <h3>Pascal X</h3>
+          <h3>Smart Crop Photo Maker</h3>
           <p style={{ textAlign: 'center', marginTop: 8 }}>
             To utilize this application, you are required to download the AI
             models capable of effectively removing backgrounds and accurately

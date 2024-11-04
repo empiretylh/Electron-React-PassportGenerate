@@ -143,7 +143,7 @@ const BeautyMaker = () => {
               style={{ width: 50, height: 50, objectFit: 'contain' }}
             />
             <div style={{ marginLeft: 10 }}>
-              <h4 style={{ padding: 0 }}>Pascal X</h4>
+              <h4 style={{ padding: 0 }}>Smart Crop Photo Maker</h4>
               <p style={{ padding: 0, marginTop: -5, fontSize: 15 }}>
                 Beauty Photo Maker
               </p>

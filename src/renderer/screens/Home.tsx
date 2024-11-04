@@ -48,7 +48,7 @@ const Home = () => {
               marginBottom: 5,
             }}
           />
-          <h2>Pascal X </h2>
+          <h2>Smart Crop Photo Maker </h2>
           <p>10x your productivity</p>
         </div>
         <div>
